@@ -40,8 +40,11 @@ domain        downloader    parsing DSL          queue/dedup/middleware       ex
 - **`Types.fs`** — pure domain: `Request`, `Response`, `HttpVerb`. No I/O. Records +
   DUs only.
 - **`Http.fs`** — the downloader. One shared `HttpClient`. Returns `Async<Response>`.
-  Retry/back-off/throttle land here in Phase 1 (via Polly), composed as wrappers — do
-  not bake policy into `fetch` itself.
+- **`Resilience.fs`** — retry/back-off/timeout/throttle, composed as wrappers *around*
+  `Http.fetch` (via Polly) — never baked into `fetch` itself. `politeFetch` is the stack.
+- **`Extract.fs`** — embedded-state / JSON extraction (`__NEXT_DATA__`, JSON-LD, assigned
+  globals) for "dynamic" pages, no browser. `Renderer = Request -> Async<Response>` is the
+  pluggable seam the engine speaks.
 - Compile order matters in F#: files are listed top-to-bottom in `CrawlSage.fsproj`,
   and a file can only use what is declared **above** it. Add new files in dependency
   order.
@@ -69,11 +72,16 @@ surface so callers never touch the raw API:
 | Concern | Library | Wrapped in |
 | --- | --- | --- |
 | HTML parsing | AngleSharp | `Html.fs` (Phase 2) |
-| Retry / back-off | Polly | `Http.fs` (Phase 1) |
-| Dynamic rendering | Microsoft.Playwright | `Browser.fs` (Phase 4) |
+| Retry / back-off | Polly | `Resilience.fs` (Phase 1) |
+| Embedded data / JSON | System.Text.Json (in-box) | `Extract.fs` (Phase 4a) |
 | Data frames / export | Deedle, CsvHelper | `Export.fs` (Phase 5) |
 
 Add packages with `dotnet add <proj> package <name>`; pin versions in the `.fsproj`.
+
+**No browser in core.** Dynamic pages are handled by extracting embedded state / JSON
+(`Extract.fs`), not by driving a browser. If a real browser is ever truly needed, it lives
+in a separate **opt-in adapter** implementing `Renderer` — never a core dependency. This is
+deliberate: wrapping Playwright would make CrawlSage "just another wrapper."
 
 ## Skills
 

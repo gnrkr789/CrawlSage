@@ -58,3 +58,10 @@ type Response =
     /// <c>true</c> when the status code is in the 2xx range.
     member this.IsSuccess =
         this.StatusCode >= 200 && this.StatusCode < 300
+
+/// A renderer turns a request into a response — the single seam every download/render
+/// strategy plugs into: static <c>Http.fetch</c>, resilient <c>politeFetch</c>, and any
+/// future in-process JS renderer or opt-in external-browser adapter. The crawl engine
+/// speaks only this type, so new strategies need zero engine changes — and the core
+/// stays browser-free.
+type Renderer = Request -> Async<Response>

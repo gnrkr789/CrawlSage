@@ -1,88 +1,90 @@
 ---
 name: dynamic-page
-description: Render JavaScript-heavy pages in CrawlSage with Playwright for .NET. Use when a site needs a real browser — SPA/JS rendering, infinite scroll, content that loads after the initial HTML, "click to load more", or waiting for a selector. Covers setup, the F# Browser wrapper, and scroll/wait patterns.
+description: Handle JavaScript-heavy / "dynamic" pages in CrawlSage WITHOUT a browser — by extracting the data SSR/hydration frameworks embed in the page (Next.js __NEXT_DATA__, Nuxt __NUXT__, JSON-LD, inline state) or replaying the JSON API behind it. Use when a page looks empty in Http.fetch, renders client-side, loads via XHR, or is a SPA. Covers the Extract module and the rendering ladder.
 ---
 
 # dynamic-page
 
-When a page's content is rendered by JavaScript, `Http.fetch` only sees the empty
-shell. Use **Microsoft.Playwright** to drive a real headless browser, then hand the
-rendered HTML to the `parse-html` skill.
+CrawlSage's stance: **don't render — extract.** A real browser is heavy, fragile and a
+foreign dependency that would make CrawlSage "just a Playwright wrapper." Most "dynamic"
+pages aren't: SSR / hydration frameworks ship the data *inside* the HTML as JSON, or the
+page fetches it from a discoverable JSON API. Get the data behind the page and you skip the
+browser entirely.
 
-## Setup (Phase 4)
+## The rendering ladder — cheapest first
 
-```bash
-dotnet add src/CrawlSage/CrawlSage.fsproj package Microsoft.Playwright
-# After building once, install the browser binaries:
-dotnet build CrawlSage.slnx
-pwsh src/CrawlSage/bin/Debug/net10.0/playwright.ps1 install chromium
-```
+1. **Static** — `Http.fetch`. Try it first; if the data is in the HTML, you're done.
+2. **Embedded state / JSON** — `Extract` (this skill). `__NEXT_DATA__`, `__NUXT__`,
+   `__INITIAL_STATE__`, JSON-LD, inline `<script>` JSON. **No JS engine.** Covers a large
+   fraction of "dynamic" sites.
+3. **Replay the API** — find the XHR/JSON endpoint the page calls (DevTools → Network) and
+   hit it directly with `Http.fetch`; it usually returns clean JSON.
+4. **In-process JS** *(future, opt-in)* — a managed JS engine (Jint) on AngleSharp's DOM,
+   for pages that truly compute the DOM client-side. Best-effort, no browser binary.
+5. **External browser** *(opt-in adapter, not core)* — last resort for heavy SPAs / anti-bot.
+   A separate package implementing `Renderer`; the core stays browser-free.
 
-Add `Browser.fs` to `CrawlSage.fsproj` after `Http.fs`.
+A renderer is just `Renderer = Request -> Async<Response>`, so every rung plugs into
+`Spider.crawlWith` with zero engine changes.
 
-```fsharp
-namespace CrawlSage
+## Extract embedded data (shipped — Phase 4a)
 
-open Microsoft.Playwright
+`src/CrawlSage/Extract.fs`:
 
-/// A Playwright-backed renderer for JavaScript-heavy pages.
-module Browser =
+| Function | Gets |
+| --- | --- |
+| `nextData doc` | `<script id="__NEXT_DATA__">` JSON (Next.js) |
+| `assignedJson "__NUXT__" doc` | `window.__NUXT__ = {…}` / any `name = {…}` global |
+| `jsonLd doc` | all `application/ld+json` blocks |
+| `scriptJson selector doc` | JSON inside any `<script>` you select |
+| `json raw` | parse a raw string → `JsonNode option` |
 
-    /// Render a URL with a headless browser and return the fully-loaded HTML.
-    let render (url: string) : Async<string> =
-        async {
-            use! pw = Playwright.CreateAsync() |> Async.AwaitTask
-            let! browser = pw.Chromium.LaunchAsync() |> Async.AwaitTask
-            let! page = browser.NewPageAsync() |> Async.AwaitTask
-            let! _ = page.GotoAsync(url) |> Async.AwaitTask
-            let! html = page.ContentAsync() |> Async.AwaitTask
-            do! browser.CloseAsync() |> Async.AwaitTask
-            return html
-        }
-```
-
-## Wait for content
-
-Don't scrape before the data arrives. Wait for a selector:
+Navigate the JSON option-style, just like `Html`: `prop`, `path`, `asString`, `asList`.
 
 ```fsharp
-let! _ = page.WaitForSelectorAsync(".product-card") |> Async.AwaitTask
+open CrawlSage
+
+let doc =
+    Http.getString "https://a-next-site.example" |> Async.RunSynchronously |> Html.parse
+
+let title =
+    doc
+    |> Extract.nextData
+    |> Option.bind (Extract.path [ "props"; "pageProps"; "title" ])
+    |> Option.bind Extract.asString
 ```
 
-## Infinite scroll
+Use it inside a `Spider` parser exactly like the HTML path — `Extract` and `Html` compose.
 
-Scroll until the page stops growing (cap the iterations to stay polite):
+## Replay the JSON API
+
+If step 2 finds nothing, open the site, watch DevTools → Network → Fetch/XHR, copy the
+request that returns the data, and fetch it directly:
 
 ```fsharp
-let scrollToEnd (page: IPage) =
-    async {
-        let mutable previous = 0
-        let mutable stable = false
-        let mutable guard = 0
-        while not stable && guard < 50 do
-            let! height =
-                page.EvaluateAsync<int>("document.body.scrollHeight") |> Async.AwaitTask
-            do! page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)")
-                |> Async.AwaitTask |> Async.Ignore
-            do! page.WaitForTimeoutAsync(800f) |> Async.AwaitTask
-            stable <- height = previous
-            previous <- height
-            guard <- guard + 1
-    }
+let payload =
+    Request.create "https://api.example.com/v1/items?page=1"
+    |> Request.withHeader "Accept" "application/json"
+    |> Http.fetch
+    |> Async.RunSynchronously
+    |> fun r -> Extract.json r.Body
 ```
 
-## Then
+Faster and far more stable than scraping rendered HTML.
 
-- Pass the rendered HTML to **`parse-html`** for extraction.
-- For login-gated dynamic pages, drive the form with Playwright (`FillAsync` /
-  `ClickAsync`) — see **`session-auth`**.
+## When you genuinely need a browser
+
+If the data is neither embedded nor in a reachable API (heavy client-only SPA, anti-bot),
+that's rungs 4–5 — **opt-in and out of the core.** Implement a `Renderer` in a separate
+adapter so CrawlSage's core never takes a browser dependency. Don't reach for one until
+rungs 1–3 are exhausted.
 
 ## Guidance
 
-- **Reuse the browser, not one per request.** Launching Chromium is expensive; render a
-  batch of URLs on one `IBrowser`, opening a fresh `IPage` per URL.
-- **Prefer `Http.fetch` when you can.** A real browser is 10–100× heavier. Only reach
-  for Playwright when the content genuinely requires JS.
-- **Always wait for a concrete selector**, not a fixed sleep, before reading content.
-- Run headless in CI; set a realistic viewport and locale if the site is sensitive to
-  them.
+- **Exhaust 1–3 before 4–5.** Extraction / API replay solves most "dynamic" pages at a
+  fraction of the cost and breaks far less often.
+- **Stay option-style.** `Extract` mirrors `Html`: everything returns `option`; navigate
+  with `path` / `prop`.
+- **Test against canned HTML / JSON** — feed string literals to `Html.parse` /
+  `Extract.json` so tests stay hermetic.
+- **Be polite on every rung** — see the `crawl-ops` skill.

@@ -11,9 +11,8 @@ CrawlSage is built in layers. Dependencies flow one way — lower layers never r
 higher ones — which keeps each piece testable in isolation.
 
 ```
-Types  →  Http  →  Html  →  Spider engine  →  Pipelines
-domain    download  parse    queue/dedup/      export /
-                             middleware        storage
+Types → Http → Resilience → Html → Extract → Spider → Export
+domain  fetch   resilience   parse   extract  engine   (Phase 5)
 ```
 
 ## Layers
@@ -25,7 +24,7 @@ domain    download  parse    queue/dedup/      export /
 | **Resilience** | `Resilience.fs` | retry · back-off · timeout · throttle (Polly) | 1 ✅ |
 | **Parsing** | `Html.fs` | AngleSharp-backed selector DSL (CSS) | 2 ✅ |
 | **Engine** | `Spider.fs` | BFS scheduler, dedup, depth bound, item pipeline | 3 ✅ |
-| **Rendering** | `Browser.fs` | Playwright renderer for JS-heavy / infinite-scroll pages | 4 |
+| **Extraction** | `Extract.fs` | embedded-state / JSON, no browser: `__NEXT_DATA__`, JSON-LD | 4a ✅ |
 | **Export** | `Export.fs` | CSV / JSON / Parquet / DB sinks | 5 |
 
 ## Design principles
@@ -38,9 +37,12 @@ domain    download  parse    queue/dedup/      export /
    the ambient cancellation token, so a whole crawl can be cancelled as one unit.
 3. **Policy as composition.** Retry, throttling and proxy rotation are *wrappers* around
    `Http.fetch`, not flags inside it. You opt in by composing functions.
-4. **Wrap, don't expose.** Best-in-class .NET libraries (AngleSharp, Polly, Playwright,
-   Deedle) sit behind a thin F# surface so callers never touch the raw API.
-5. **Ethical by default.** `robots.txt`, rate limits and back-off are first-class
+4. **Wrap, don't expose.** Best-in-class .NET libraries (AngleSharp, Polly, Deedle) sit
+   behind a thin F# surface so callers never touch the raw API.
+5. **Don't render — extract.** Dynamic data is pulled from the page's embedded state /
+   JSON or its API, not a browser. The core stays browser-free; a real browser is an
+   opt-in `Renderer` adapter, never a core dependency.
+6. **Ethical by default.** `robots.txt`, rate limits and back-off are first-class
    middleware, not afterthoughts.
 
 ## The request lifecycle (target design, Phase 3)

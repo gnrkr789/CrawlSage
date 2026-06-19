@@ -111,25 +111,31 @@ pipeline) in a test, with dedup and depth limits working.
 
 ---
 
-## Phase 4 — Dynamic pages
+## Phase 4 — Dynamic data (extraction-first) ✅ (4a done)
 
-**Goal:** render JavaScript sites; handle infinite scroll and click-to-load.
+**Direction:** CrawlSage does **not** wrap Playwright. A renderer is just
+`Renderer = Request -> Async<Response>`, the core stays browser-free, and we climb a
+"rendering ladder" cheapest-first: static → embedded-state/JSON extraction → API replay →
+(opt-in) in-process JS → (opt-in) external-browser adapter.
+
+**Shipped (4a):** `src/CrawlSage/Extract.fs` — `nextData`, `assignedJson`, `jsonLd`,
+`scriptJson`, `json`, plus option-style JSON navigation (`prop`, `path`, `asString`,
+`asList`). Pure System.Text.Json, no JS engine. `Renderer` alias added to `Types.fs`.
+5 hermetic tests.
+
+### Phase 4b (optional) — in-process JS renderer
 
 ```text
-Add a Playwright-backed renderer to CrawlSage. Use the `dynamic-page` skill.
-
-Add the Microsoft.Playwright package and create src/CrawlSage/Browser.fs (after Http.fs)
-with: render (url -> Async<string>) returning fully-loaded HTML, a waitForSelector
-helper, and a scrollToEnd helper for infinite scroll. Reuse one IBrowser across a batch.
-
-Make the engine able to use Browser.render instead of Http.fetch for a spider flagged as
-needing JS (add a `renderJs` option to the Spider record). Document the one-time
-`playwright install chromium` step in the README. Tests here can be skipped/trait-gated
-since they need a browser — mark them clearly. Keep the default dotnet test green.
+Add an opt-in, in-process JS renderer to CrawlSage WITHOUT a browser binary. Evaluate Jint
+(a managed JS engine) wired to AngleSharp's DOM, exposed as a Renderer
+(Request -> Async<Response>) that runs page scripts and returns the mutated HTML, so it
+drops into Spider.crawlWith. Keep it best-effort and documented as such; the core must stay
+browser-free. Trait-gate any tests that need it. Keep the default dotnet test green.
 ```
 
-**Done when:** a spider can opt into JS rendering, and the rendered HTML flows through
-the same parse → pipeline path.
+**Done when (4a):** a parser pulls structured data from `__NEXT_DATA__` / JSON-LD /
+assigned globals via `Extract`, with no browser. **4b** is optional; the external browser
+stays an opt-in adapter outside the core.
 
 ---
 

@@ -22,7 +22,7 @@ F# *can* crawl the web today — `HttpClient`, `AngleSharp`, `HtmlAgilityPack` a
 | **No dedicated framework** — you assemble .NET libraries by hand | A Scrapy-style engine: request queue, dedup, pipelines, middleware, retry, throttling |
 | **Few real-world examples** — login, cookies, infinite scroll, dynamic rendering | A curated **cookbook** of runnable F# recipes for exactly these cases |
 | **Verbose HTML parsing** vs BeautifulSoup's forgiving API | A concise, F#-idiomatic selector DSL over AngleSharp |
-| **Dynamic pages** need Playwright/Selenium, sparse F# samples | A first-class Playwright-backed renderer with F# helpers |
+| **Dynamic pages** need a browser, sparse F# samples | Extract the embedded state / JSON the page already ships — no browser |
 | **Weaker data post-processing** than pandas | Export pipelines to CSV / JSON / Parquet / DB, Deedle-friendly |
 | **Thin operational know-how** — proxy rotation, rate limits, robots.txt | Built-in middleware for proxies, UA rotation, back-off, `robots.txt` |
 
@@ -99,6 +99,7 @@ CrawlSage/
 │   ├── Http.fs               #   the downloader (HttpClient)
 │   ├── Resilience.fs         #   retry · back-off · timeout · throttle (Polly)
 │   ├── Html.fs               #   AngleSharp selector DSL (parse / select / text / attr)
+│   ├── Extract.fs            #   embedded-state / JSON extraction (__NEXT_DATA__, JSON-LD)
 │   └── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline)
 ├── tests/CrawlSage.Tests/    # xUnit test project
 ├── samples/                  # cookbook: runnable, self-contained crawlers
@@ -119,7 +120,7 @@ CrawlSage/
 | 1 | **Downloader** ✅ | retry/back-off, throttling, timeouts (Polly) |
 | 2 | **Parsing DSL** ✅ | AngleSharp wrapper, CSS selectors |
 | 3 | **Spider engine** ✅ | request queue, dedup, scheduler, pipelines |
-| 4 | **Dynamic pages** | Playwright renderer, infinite scroll, login |
+| 4 | **Dynamic data** ✅ | embedded-state / JSON extraction (no browser) |
 | 5 | **Data pipelines** | CSV / JSON / Parquet / DB export |
 | 6 | **Crawl ops** | proxy & UA rotation, rate limits, robots.txt |
 | 7 | **Cookbook** | real-world recipes in `samples/` |

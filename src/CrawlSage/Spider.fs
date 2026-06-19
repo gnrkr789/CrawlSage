@@ -61,7 +61,7 @@ module Spider =
 
     /// Run <paramref name="spider"/> with an explicit fetch function — inject a stub in
     /// tests, or use <c>crawl</c> for the production downloader.
-    let crawlWith (fetch: Request -> Async<Response>) (spider: Spider<'Item>) : Async<unit> =
+    let crawlWith (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
         async {
             let seen = System.Collections.Generic.HashSet<string>()
             let maxDepth = spider.Options.MaxDepth

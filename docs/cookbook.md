@@ -18,8 +18,8 @@ phase is built. This page is the index of what's planned.
 | **Extract a list** | CSS selectors, mapping nodes to records | 2 ✅ |
 | **Follow pagination** | yielding follow-up requests from a parser | 3 ✅ |
 | **Login + keep session** | form POST, cookie jar, authenticated pages | 4 |
-| **Infinite scroll** | Playwright, scroll-to-load, waiting for content | 4 |
-| **Dynamic SPA** | render JS, wait for selectors, extract | 4 |
+| **Dynamic data, no browser** | `__NEXT_DATA__` / JSON-LD / API replay via `Extract` | 4a ✅ |
+| **Heavy SPA (opt-in)** | in-process JS / external-browser adapter — last resort | 4b+ |
 | **Export to CSV/JSON** | piping scraped items to a file sink | 5 |
 | **Polite crawl** | `robots.txt`, rate limit, retry/back-off | 6 |
 | **Proxy & UA rotation** | resilient fetching behind rotating egress | 6 |
@@ -48,6 +48,23 @@ let titles =
     |> Html.parse
     |> Html.selectAll ".titleline > a"
     |> List.map Html.text
+```
+
+## Dynamic data, no browser (available now — Phase 4a)
+
+Most "dynamic" pages ship their data as embedded JSON. Extract it instead of rendering:
+
+```fsharp
+open CrawlSage
+
+// A Next.js page embeds its data in <script id="__NEXT_DATA__"> — no browser needed.
+let title =
+    Http.getString "https://a-next-site.example"
+    |> Async.RunSynchronously
+    |> Html.parse
+    |> Extract.nextData
+    |> Option.bind (Extract.path [ "props"; "pageProps"; "title" ])
+    |> Option.bind Extract.asString
 ```
 
 > Recipes graduate from "target API" to "available today" as each phase ships.
