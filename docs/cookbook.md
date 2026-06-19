@@ -15,7 +15,7 @@ phase is built. This page is the index of what's planned.
 | Recipe | What it shows | Phase |
 | --- | --- | --- |
 | **Hello, fetch** | request → response → body | 0 ✅ |
-| **Extract a list** | CSS selectors, mapping nodes to records | 2 |
+| **Extract a list** | CSS selectors, mapping nodes to records | 2 ✅ |
 | **Follow pagination** | yielding follow-up requests from a parser | 3 |
 | **Login + keep session** | form POST, cookie jar, authenticated pages | 4 |
 | **Infinite scroll** | Playwright, scroll-to-load, waiting for content | 4 |
@@ -37,7 +37,7 @@ let titlesLength =
 printfn "Fetched %d characters" titlesLength
 ```
 
-## Extract a list (target API, Phase 2)
+## Extract a list (available now — Phase 2)
 
 ```fsharp
 open CrawlSage

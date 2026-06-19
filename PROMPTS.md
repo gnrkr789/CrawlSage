@@ -53,7 +53,11 @@ and new tests pass.
 
 ---
 
-## Phase 2 — Parsing DSL
+## Phase 2 — Parsing DSL ✅ (done)
+
+**Shipped:** `src/CrawlSage/Html.fs` — `parse`, `select`, `selectAll`, `text`, `attr`,
+`attrOr` over AngleSharp, curried node-last and `option`-returning, with 6 hermetic
+tests. The original build prompt is kept below for reference.
 
 **Goal:** BeautifulSoup-grade extraction — a concise selector API over AngleSharp.
 

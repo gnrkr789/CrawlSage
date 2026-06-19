@@ -23,7 +23,7 @@ domain    download  parse    queue/dedup/      export /
 | **Domain** | `Types.fs` | `Request`, `Response`, `HttpVerb` — pure data, no I/O | 0 ✅ |
 | **Downloader** | `Http.fs` | fetch over `HttpClient` | 0 ✅ |
 | **Resilience** | `Resilience.fs` | retry · back-off · timeout · throttle (Polly) | 1 ✅ |
-| **Parsing** | `Html.fs` | AngleSharp-backed selector DSL (CSS / XPath) | 2 |
+| **Parsing** | `Html.fs` | AngleSharp-backed selector DSL (CSS) | 2 ✅ |
 | **Engine** | `Spider.fs` | request queue, dedup, scheduler, middleware, pipelines | 3 |
 | **Rendering** | `Browser.fs` | Playwright renderer for JS-heavy / infinite-scroll pages | 4 |
 | **Export** | `Export.fs` | CSV / JSON / Parquet / DB sinks | 5 |
