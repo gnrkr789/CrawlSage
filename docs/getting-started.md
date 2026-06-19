@@ -59,6 +59,30 @@ let req =
     |> Request.withBody """{"hello":"world"}"""   // switches the verb to POST
 ```
 
+## Resilient fetching
+
+`Resilience` wraps any fetch with retries, timeouts and throttling — composed, not
+configured. `politeFetch` is the batteries-included stack:
+
+```fsharp
+open CrawlSage
+
+let response =
+    Request.create "https://example.com"
+    |> Resilience.politeFetch          // throttle ∘ retry ∘ timeout ∘ Http.fetch
+    |> Async.RunSynchronously
+```
+
+Or build your own stack:
+
+```fsharp
+let myFetch =
+    Http.fetch
+    |> Resilience.withTimeout (System.TimeSpan.FromSeconds 10.0)
+    |> Resilience.withRetry
+    |> Resilience.throttle 8
+```
+
 ## What's next
 
 The parsing DSL, spider engine, dynamic renderer and data pipelines are built

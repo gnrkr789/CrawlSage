@@ -1,4 +1,4 @@
-module CrawlSage.Tests
+module CrawlSage.Tests.Core
 
 open Xunit
 open CrawlSage

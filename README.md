@@ -96,7 +96,8 @@ printfn "%d — %d bytes" body.StatusCode body.Body.Length
 CrawlSage/
 ├── src/CrawlSage/            # the framework library
 │   ├── Types.fs              #   Request / Response / HttpVerb
-│   └── Http.fs               #   the downloader seed (HttpClient)
+│   ├── Http.fs               #   the downloader (HttpClient)
+│   └── Resilience.fs         #   retry · back-off · timeout · throttle (Polly)
 ├── tests/CrawlSage.Tests/    # xUnit test project
 ├── samples/                  # cookbook: runnable, self-contained crawlers
 ├── docs/                     # GitHub Pages site (Jekyll)
@@ -113,7 +114,7 @@ CrawlSage/
 | Phase | Theme | Output |
 | --- | --- | --- |
 | 0 | **Scaffold** ✅ | repo, CI, docs, skills, core types |
-| 1 | **Downloader** | retry/back-off, throttling, timeouts (Polly) |
+| 1 | **Downloader** ✅ | retry/back-off, throttling, timeouts (Polly) |
 | 2 | **Parsing DSL** | AngleSharp wrapper, CSS/XPath selectors |
 | 3 | **Spider engine** | request queue, dedup, scheduler, pipelines, middleware |
 | 4 | **Dynamic pages** | Playwright renderer, infinite scroll, login |

@@ -8,6 +8,11 @@
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="Http.fs" />
+    <Compile Include="Resilience.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Polly" Version="8.7.0" />
   </ItemGroup>
 
 </Project>

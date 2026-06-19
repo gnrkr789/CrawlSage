@@ -24,7 +24,11 @@ Repository, CI, GitHub Pages docs, six skills, and the core types (`Request`,
 
 ---
 
-## Phase 1 — Resilient downloader
+## Phase 1 — Resilient downloader ✅ (done)
+
+**Shipped:** `src/CrawlSage/Resilience.fs` — `withRetry` / `withRetryOptions`,
+`withTimeout`, `throttle`, and `politeFetch` (throttle ∘ retry ∘ timeout ∘ `Http.fetch`),
+covered by 8 hermetic tests. The original build prompt is kept below for reference.
 
 **Goal:** retries, back-off, throttling and timeouts, composed *around* `Http.fetch`.
 
