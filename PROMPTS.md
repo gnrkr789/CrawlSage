@@ -78,7 +78,12 @@ and is tested against canned HTML.
 
 ---
 
-## Phase 3 — Spider engine
+## Phase 3 — Spider engine ✅ (done)
+
+**Shipped:** `src/CrawlSage/Spider.fs` — `ParseResult<'Item>` (`Item` | `Follow`),
+`Spider<'Item>`, `SpiderOptions`, and the engine (`create`, `crawlWith`, `crawl`): a
+breadth-first scheduler with URL-fingerprint dedup, depth bounding and bounded
+per-level concurrency. 4 hermetic tests. The original build prompt is kept below.
 
 **Goal:** the Scrapy-style core — queue, dedup, scheduler, parser callbacks, pipelines.
 

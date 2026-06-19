@@ -19,7 +19,8 @@
 
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
+    <!-- Null-safety in CrawlSage is expressed with F# `option` + `Option.ofObj`, so the
+         C#-style nullable-reference feature is left off to avoid BCL-interop warning noise. -->
     <WarningLevel>5</WarningLevel>
     <!-- Keep CI green on warnings for now; tighten once the API stabilises. -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

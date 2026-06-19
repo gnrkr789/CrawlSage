@@ -10,6 +10,7 @@
     <Compile Include="Http.fs" />
     <Compile Include="Resilience.fs" />
     <Compile Include="Html.fs" />
+    <Compile Include="Spider.fs" />
   </ItemGroup>
 
   <ItemGroup>

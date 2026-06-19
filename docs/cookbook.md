@@ -16,7 +16,7 @@ phase is built. This page is the index of what's planned.
 | --- | --- | --- |
 | **Hello, fetch** | request → response → body | 0 ✅ |
 | **Extract a list** | CSS selectors, mapping nodes to records | 2 ✅ |
-| **Follow pagination** | yielding follow-up requests from a parser | 3 |
+| **Follow pagination** | yielding follow-up requests from a parser | 3 ✅ |
 | **Login + keep session** | form POST, cookie jar, authenticated pages | 4 |
 | **Infinite scroll** | Playwright, scroll-to-load, waiting for content | 4 |
 | **Dynamic SPA** | render JS, wait for selectors, extract | 4 |

@@ -98,7 +98,8 @@ CrawlSage/
 │   ├── Types.fs              #   Request / Response / HttpVerb
 │   ├── Http.fs               #   the downloader (HttpClient)
 │   ├── Resilience.fs         #   retry · back-off · timeout · throttle (Polly)
-│   └── Html.fs               #   AngleSharp selector DSL (parse / select / text / attr)
+│   ├── Html.fs               #   AngleSharp selector DSL (parse / select / text / attr)
+│   └── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline)
 ├── tests/CrawlSage.Tests/    # xUnit test project
 ├── samples/                  # cookbook: runnable, self-contained crawlers
 ├── docs/                     # GitHub Pages site (Jekyll)
@@ -117,7 +118,7 @@ CrawlSage/
 | 0 | **Scaffold** ✅ | repo, CI, docs, skills, core types |
 | 1 | **Downloader** ✅ | retry/back-off, throttling, timeouts (Polly) |
 | 2 | **Parsing DSL** ✅ | AngleSharp wrapper, CSS selectors |
-| 3 | **Spider engine** | request queue, dedup, scheduler, pipelines, middleware |
+| 3 | **Spider engine** ✅ | request queue, dedup, scheduler, pipelines |
 | 4 | **Dynamic pages** | Playwright renderer, infinite scroll, login |
 | 5 | **Data pipelines** | CSV / JSON / Parquet / DB export |
 | 6 | **Crawl ops** | proxy & UA rotation, rate limits, robots.txt |

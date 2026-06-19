@@ -1,11 +1,11 @@
 ---
 name: new-spider
-description: Scaffold a new CrawlSage crawler. Use when the user wants to start a new spider/crawler/scraper, add a runnable example under samples/, or says "create a crawler for <site>". Wires an F# console project to CrawlSage's fetch → parse → output flow.
+description: Scaffold a new CrawlSage crawler. Use when the user wants to start a new spider/crawler/scraper, add a runnable example under samples/, or says "create a crawler for <site>". Wires an F# console project to CrawlSage's Spider engine (fetch → parse → pipeline).
 ---
 
 # new-spider
 
-Scaffold a new, runnable crawler under `samples/` and wire it into the solution.
+Scaffold a new, runnable crawler under `samples/`, built on CrawlSage's `Spider` engine.
 
 ## Steps
 
@@ -20,7 +20,8 @@ Scaffold a new, runnable crawler under `samples/` and wire it into the solution.
    dotnet add samples/<Name>/CrawlSage.Samples.<Name>.fsproj reference src/CrawlSage/CrawlSage.fsproj
    ```
 
-3. **Replace `Program.fs`** with the template below, then fill in the URL and parsing.
+3. **Replace `Program.fs`** with the template below; set the seed URL, the item shape,
+   and the selectors.
 
 4. **Run it:** `dotnet run --project samples/<Name>`
 
@@ -31,41 +32,54 @@ module CrawlSage.Samples.<Name>.Program
 
 open CrawlSage
 
-/// One scraped record. Shape it to the site.
+/// One scraped record — shape it to the site.
 type Item = { Title: string; Url: string }
 
-let private startUrl = "https://example.com"
+/// Turn a fetched page into items + follow-up requests.
+let parse (response: Response) : ParseResult<Item> list =
+    let doc = Html.parse response.Body
 
-/// Turn a fetched page into items. Until the parsing DSL (Phase 2) lands, work the
-/// body directly or use the `parse-html` skill once `Html.fs` exists.
-let parse (response: Response) : Item list =
-    // TODO: extract items from response.Body
-    [ { Title = "example"; Url = response.Request.Url } ]
+    let items =
+        doc
+        |> Html.selectAll "article h2 > a"
+        |> List.map (fun a -> Item { Title = Html.text a; Url = Html.attrOr "" "href" a })
+
+    let next =
+        doc
+        |> Html.selectAll "a.next"
+        |> List.choose (Html.attr "href")
+        |> List.map (Request.create >> Follow)
+
+    items @ next
 
 [<EntryPoint>]
 let main _ =
-    async {
-        let! response = Http.fetch (Request.create startUrl)
-        if response.IsSuccess then
-            for item in parse response do
-                printfn "%s — %s" item.Title item.Url
-        else
-            eprintfn "Fetch failed: %d" response.StatusCode
-        return 0
-    }
-    |> Async.RunSynchronously
+    let spider =
+        { Seeds = [ Request.create "https://example.com" ]
+          Parse = parse
+          Pipeline = (fun item -> printfn "%s — %s" item.Title item.Url)
+          Options = { SpiderOptions.Default with MaxDepth = 2 } }
+
+    Spider.crawl spider |> Async.RunSynchronously
+    0
 ```
+
+`Spider.crawl` uses the production downloader (`Resilience.politeFetch`: throttled,
+retried, timed-out). For a dry run or a hermetic test, `Spider.crawlWith myFetch spider`
+injects your own fetch.
 
 ## Then
 
-- To extract structured data, use the **`parse-html`** skill.
-- If the page needs JavaScript, use the **`dynamic-page`** skill.
+- Extract structured data with the **`parse-html`** skill (`select` / `selectAll` /
+  `text` / `attr`).
+- If the page needs JavaScript, render it with the **`dynamic-page`** skill, then parse.
 - For logged-in pages, use **`session-auth`**.
-- To save results, use **`data-export`**.
-- Keep crawls polite — see **`crawl-ops`**.
+- To persist items, swap the `Pipeline` for a sink from **`data-export`**.
+- Tune politeness (rate, robots.txt, proxies) with **`crawl-ops`**.
 
 ## Conventions
 
 - Sample namespace: `CrawlSage.Samples.<Name>`.
 - One self-contained crawler per folder; no shared sample state.
-- Hard-code the start URL as a `let` at the top so it's easy to find and change.
+- Keep the seed URL and `Options` near the top so they're easy to find and change.
+- Be polite by default, and write any output under `data/` (git-ignored).

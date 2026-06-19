@@ -83,6 +83,45 @@ let myFetch =
     |> Resilience.throttle 8
 ```
 
+## Crawling with the engine
+
+`Spider` turns seeds + a parser into a full breadth-first crawl with dedup, depth limits
+and bounded concurrency. A parser returns `Item`s (→ the pipeline) and `Follow`s (→ back
+to the scheduler):
+
+```fsharp
+open CrawlSage
+
+type Story = { Title: string }
+
+let parse (response: Response) : ParseResult<Story> list =
+    let doc = Html.parse response.Body
+
+    let stories =
+        doc
+        |> Html.selectAll ".titleline > a"
+        |> List.map (fun a -> Item { Title = Html.text a })
+
+    let next =
+        doc
+        |> Html.selectAll "a.morelink"
+        |> List.choose (Html.attr "href")
+        |> List.map (Request.create >> Follow)
+
+    stories @ next
+
+let spider =
+    { Seeds = [ Request.create "https://news.ycombinator.com" ]
+      Parse = parse
+      Pipeline = (fun s -> printfn "%s" s.Title)
+      Options = { SpiderOptions.Default with MaxDepth = 1 } }
+
+Spider.crawl spider |> Async.RunSynchronously
+```
+
+`Spider.crawl` fetches through `Resilience.politeFetch`; inject a stub with
+`Spider.crawlWith` for hermetic tests.
+
 ## What's next
 
 The parsing DSL, spider engine, dynamic renderer and data pipelines are built
