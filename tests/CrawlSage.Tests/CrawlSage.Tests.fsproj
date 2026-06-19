@@ -11,6 +11,7 @@
     <Compile Include="HtmlTests.fs" />
     <Compile Include="ExtractTests.fs" />
     <Compile Include="SpiderTests.fs" />
+    <Compile Include="ExportTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -100,7 +100,8 @@ CrawlSage/
 │   ├── Resilience.fs         #   retry · back-off · timeout · throttle (Polly)
 │   ├── Html.fs               #   AngleSharp selector DSL (parse / select / text / attr)
 │   ├── Extract.fs            #   embedded-state / JSON extraction (__NEXT_DATA__, JSON-LD)
-│   └── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline)
+│   ├── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline)
+│   └── Export.fs             #   output sinks: JSON / JSONL / CSV + Deedle frames
 ├── tests/CrawlSage.Tests/    # xUnit test project
 ├── samples/                  # cookbook: runnable, self-contained crawlers
 ├── docs/                     # GitHub Pages site (Jekyll)
@@ -121,7 +122,7 @@ CrawlSage/
 | 2 | **Parsing DSL** ✅ | AngleSharp wrapper, CSS selectors |
 | 3 | **Spider engine** ✅ | request queue, dedup, scheduler, pipelines |
 | 4 | **Dynamic data** ✅ | embedded-state / JSON extraction (no browser) |
-| 5 | **Data pipelines** | CSV / JSON / Parquet / DB export |
+| 5 | **Data pipelines** ✅ | JSON / JSONL / CSV sinks + Deedle frames |
 | 6 | **Crawl ops** | proxy & UA rotation, rate limits, robots.txt |
 | 7 | **Cookbook** | real-world recipes in `samples/` |
 | 8 | **Packaging** | NuGet release, versioned docs |

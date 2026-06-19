@@ -122,6 +122,23 @@ Spider.crawl spider |> Async.RunSynchronously
 `Spider.crawl` fetches through `Resilience.politeFetch`; inject a stub with
 `Spider.crawlWith` for hermetic tests.
 
+## Saving results
+
+`Spider.Pipeline` is a `Sink<'Item>`, so an `Export` sink streams a crawl straight to disk:
+
+```fsharp
+let spider =
+    { Seeds = [ Request.create "https://news.ycombinator.com" ]
+      Parse = parse
+      Pipeline = Export.fanout [ Export.appendJsonLine "data/stories.jsonl"; Export.console ]
+      Options = { SpiderOptions.Default with MaxDepth = 1 } }
+
+Spider.crawl spider |> Async.RunSynchronously
+```
+
+Already hold everything in memory? `Export.toJson` / `toCsv` write a batch, and
+`Export.toFrame` opens it in Deedle for pandas-style analysis.
+
 ## What's next
 
 The parsing DSL, spider engine, dynamic renderer and data pipelines are built

@@ -1,100 +1,74 @@
 ---
 name: data-export
-description: Export scraped data from CrawlSage to CSV, JSON, Parquet or a database. Use when the user wants to save/persist/write scraped results, produce a CSV/JSON/Excel file, load into pandas/Deedle, or pipe items to a sink. Covers the Export module and a Scrapy-style item pipeline.
+description: Export scraped data from CrawlSage to JSON, JSON Lines, CSV or a database, and into Deedle for pandas-style analysis. Use when the user wants to save/persist/write scraped results, produce a CSV/JSON file, wire a Spider pipeline to disk, or post-process data. Covers the Export module and the Sink seam.
 ---
 
 # data-export
 
-Scraping is only half the job — the data has to land somewhere. CrawlSage models output
-as **sinks**: a scraped item flows into one or more writers (CSV, JSON, DB).
+Scraping is half the job — the data has to land somewhere. CrawlSage models output as
+**sinks**: `Sink<'T> = 'T -> unit`, the exact shape of a `Spider.Pipeline`. Stream items to
+a file as you crawl, or write a finished batch; `toFrame` hands off to Deedle for
+pandas-style work — the data-wrangling story F# is often said to lack.
 
-## JSON (zero dependencies)
+## The `Export` module (shipped — Phase 5)
 
-`System.Text.Json` ships with .NET. Good default for nested data.
+`src/CrawlSage/Export.fs`:
 
-```fsharp
-namespace CrawlSage
+| Function | Shape | Use |
+| --- | --- | --- |
+| `toJson path items` | batch | pretty JSON array file |
+| `toCsv path items` | batch | CSV (CsvHelper), one column per record field |
+| `appendJsonLine path` | `Sink<'T>` | append one JSON object per line (JSONL) — streaming |
+| `console` | `Sink<'T>` | print each item with `%A` while developing |
+| `fanout [s1; s2]` | `Sink<'T>` | send each item to several sinks at once |
+| `toFrame items` | → `Frame` | Deedle frame for group / pivot / aggregate |
 
-open System.IO
-open System.Text.Json
+## Wire a sink into a crawl
 
-module Export =
-
-    let private options = JsonSerializerOptions(WriteIndented = true)
-
-    /// Write a sequence of items to a JSON array file.
-    let toJson (path: string) (items: 'T seq) =
-        use stream = File.Create(path)
-        JsonSerializer.Serialize(stream, Seq.toArray items, options)
-
-    /// Append one item per line (JSON Lines) — stream-friendly for big crawls.
-    let appendJsonLine (path: string) (item: 'T) =
-        use writer = new StreamWriter(path, append = true)
-        writer.WriteLine(JsonSerializer.Serialize(item))
-```
-
-## CSV (CsvHelper)
-
-```bash
-dotnet add src/CrawlSage/CrawlSage.fsproj package CsvHelper
-```
+`Spider.Pipeline` is a `Sink<'Item>`, so an `Export` sink drops straight in:
 
 ```fsharp
-open System.Globalization
-open CsvHelper
+open CrawlSage
 
-let toCsv (path: string) (items: 'T seq) =
-    use writer = new StreamWriter(path)
-    use csv = new CsvWriter(writer, CultureInfo.InvariantCulture)
-    csv.WriteRecords(items)
+let spider =
+    { Seeds = [ Request.create "https://example.com" ]
+      Parse = parse
+      Pipeline = Export.appendJsonLine "data/items.jsonl"   // streams as it crawls
+      Options = SpiderOptions.Default }
+
+Spider.crawl spider |> Async.RunSynchronously
 ```
 
-> F# records work directly with CsvHelper — each field becomes a column. Use
-> `[<CLIMutable>]` on the record if CsvHelper needs to construct it on *read*.
-
-## Data frames & Excel (Deedle)
-
-For pandas-style post-processing — the gap this closes vs Python:
-
-```bash
-dotnet add src/CrawlSage/CrawlSage.fsproj package Deedle
-```
+Fan out to several destinations at once:
 
 ```fsharp
-open Deedle
-
-let frame = Frame.ofRecords items
-frame |> Frame.saveCsv "out.csv"
-// group, pivot, aggregate, then save — the Deedle API mirrors pandas closely.
+Pipeline = Export.fanout [ Export.appendJsonLine "data/items.jsonl"; Export.console ]
 ```
+
+## Batch write + analyse
+
+When you already hold all the items:
+
+```fsharp
+Export.toJson "data/items.json" items
+Export.toCsv  "data/items.csv"  items          // item type must be a public record
+
+let frame = Export.toFrame items               // pandas-style from here
+// frame |> Frame.groupRowsBy "category" |> Frame.…
+```
+
+> CsvHelper maps **public** properties — keep scraped item records public (the default).
 
 ## Database
 
-Use **Dapper** for a thin SQL layer, or **EF Core** if you want migrations. Batch
-inserts; don't write one row per round-trip.
-
-## Item pipeline (Scrapy-style, Phase 5)
-
-Model export as a list of sinks each item passes through, so a crawl can fan out to
-several destinations:
-
-```fsharp
-type Sink<'T> = 'T -> unit
-
-let pipeline (sinks: Sink<'T> list) (item: 'T) =
-    for sink in sinks do sink item
-
-// usage
-let writeRow = Export.appendJsonLine "out.jsonl"
-let log item = printfn "scraped %A" item
-let emit = pipeline [ writeRow; log ]
-```
+For a DB sink, use **Dapper** (thin SQL) or **EF Core** (migrations); wrap an insert as a
+`Sink<'T>` and batch the writes — never one row per round-trip.
 
 ## Guidance
 
-- **Stream large crawls** (JSON Lines / append) instead of buffering everything in
-  memory, then writing once.
-- **Deduplicate before writing** — keep a `HashSet` of seen keys (URL / id).
-- **Pick the format for the consumer:** JSON/JSONL for further code, CSV for
-  spreadsheets, Parquet/DB for analytics at scale.
-- Write output under `data/` (git-ignored) so scraped data never gets committed.
+- **Stream big crawls** with `appendJsonLine` instead of buffering everything in memory and
+  writing once.
+- **Deduplicate before writing** — a `HashSet` of seen keys (URL / id).
+- **Pick the format for the consumer:** JSONL for further code, CSV for spreadsheets,
+  Deedle / DB for analysis.
+- **Write under `data/`** (git-ignored) so scraped data never gets committed.

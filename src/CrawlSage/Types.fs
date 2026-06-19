@@ -65,3 +65,8 @@ type Response =
 /// speaks only this type, so new strategies need zero engine changes — and the core
 /// stays browser-free.
 type Renderer = Request -> Async<Response>
+
+/// A sink consumes one scraped item — the shape of a spider's item pipeline, and the
+/// output counterpart to <see cref="T:CrawlSage.Renderer"/>. Compose sinks (CSV, JSON, DB,
+/// log) so one crawl fans out to several destinations.
+type Sink<'T> = 'T -> unit

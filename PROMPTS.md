@@ -139,7 +139,11 @@ stays an opt-in adapter outside the core.
 
 ---
 
-## Phase 5 — Data pipelines
+## Phase 5 — Data pipelines ✅ (done)
+
+**Shipped:** `src/CrawlSage/Export.fs` — `toJson`, `appendJsonLine` (JSONL), `toCsv`
+(CsvHelper), `fanout`, `console`, and `toFrame` (Deedle, for pandas-style work). `Sink<'T>`
+seam added to `Types.fs`; `Spider.Pipeline` is now a `Sink<'Item>`. 5 hermetic tests.
 
 **Goal:** get scraped data out — CSV / JSON / Parquet / DB — pandas-style if wanted.
 

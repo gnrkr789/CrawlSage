@@ -12,7 +12,7 @@ higher ones — which keeps each piece testable in isolation.
 
 ```
 Types → Http → Resilience → Html → Extract → Spider → Export
-domain  fetch   resilience   parse   extract  engine   (Phase 5)
+domain  fetch   resilience   parse   extract  engine   sinks
 ```
 
 ## Layers
@@ -25,7 +25,7 @@ domain  fetch   resilience   parse   extract  engine   (Phase 5)
 | **Parsing** | `Html.fs` | AngleSharp-backed selector DSL (CSS) | 2 ✅ |
 | **Engine** | `Spider.fs` | BFS scheduler, dedup, depth bound, item pipeline | 3 ✅ |
 | **Extraction** | `Extract.fs` | embedded-state / JSON, no browser: `__NEXT_DATA__`, JSON-LD | 4a ✅ |
-| **Export** | `Export.fs` | CSV / JSON / Parquet / DB sinks | 5 |
+| **Export** | `Export.fs` | JSON / JSONL / CSV sinks + Deedle frames | 5 ✅ |
 
 ## Design principles
 

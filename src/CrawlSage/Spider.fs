@@ -26,8 +26,8 @@ type Spider<'Item> =
       Seeds: Request list
       /// Turns a fetched page into items and follow-up requests.
       Parse: Response -> ParseResult<'Item> list
-      /// Sink for scraped items (CSV/JSON/DB sinks arrive in Phase 5).
-      Pipeline: 'Item -> unit
+      /// Sink for scraped items — wire an `Export` sink (CSV / JSON / JSONL / DB) here.
+      Pipeline: Sink<'Item>
       /// Engine limits.
       Options: SpiderOptions }
 

@@ -20,7 +20,7 @@ phase is built. This page is the index of what's planned.
 | **Login + keep session** | form POST, cookie jar, authenticated pages | 4 |
 | **Dynamic data, no browser** | `__NEXT_DATA__` / JSON-LD / API replay via `Extract` | 4a ✅ |
 | **Heavy SPA (opt-in)** | in-process JS / external-browser adapter — last resort | 4b+ |
-| **Export to CSV/JSON** | piping scraped items to a file sink | 5 |
+| **Export to CSV/JSON** | piping scraped items to a file sink | 5 ✅ |
 | **Polite crawl** | `robots.txt`, rate limit, retry/back-off | 6 |
 | **Proxy & UA rotation** | resilient fetching behind rotating egress | 6 |
 

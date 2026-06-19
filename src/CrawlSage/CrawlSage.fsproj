@@ -12,10 +12,13 @@
     <Compile Include="Html.fs" />
     <Compile Include="Extract.fs" />
     <Compile Include="Spider.fs" />
+    <Compile Include="Export.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.5.1" />
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
+    <PackageReference Include="Deedle" Version="8.0.0" />
     <PackageReference Include="Polly" Version="8.7.0" />
   </ItemGroup>
 
