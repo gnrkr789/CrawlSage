@@ -1,0 +1,61 @@
+# ---- .NET / F# ----
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# Build results / packages
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nupkg
+*.snupkg
+
+# Test / coverage
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+TestResults/
+
+# F# / Paket / FAKE
+.paket/
+paket-files/
+.fake/
+.ionide/
+
+# Rider
+*.sln.iml
+
+# ---- Playwright (added in the dynamic-rendering phase) ----
+.playwright/
+ms-playwright/
+
+# ---- Crawl output / local secrets ----
+/data/
+*.local.json
+.env
+*.crawl.log
+
+# ---- Docs site build (Jekyll) ----
+docs/_site/
+docs/.jekyll-cache/
+docs/.jekyll-metadata
+docs/Gemfile.lock
+
+# ---- OS ----
+.DS_Store
+Thumbs.db

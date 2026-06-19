@@ -1,0 +1,28 @@
+<Project>
+
+  <!-- Shared metadata + compiler settings for every project in the solution. -->
+  <PropertyGroup>
+    <Product>CrawlSage</Product>
+    <Authors>Jun Tae Kim</Authors>
+    <Company>CrawlSage</Company>
+    <Copyright>Copyright (c) 2026 Jun Tae Kim</Copyright>
+    <Version>0.1.0</Version>
+
+    <!-- An F#-first web crawling and scraping framework for .NET. -->
+    <Description>An F#-first web crawling and scraping framework for .NET.</Description>
+    <PackageProjectUrl>https://github.com/gnrkr789/CrawlSage</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/gnrkr789/CrawlSage</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>fsharp;crawler;scraper;scraping;spider;web</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <WarningLevel>5</WarningLevel>
+    <!-- Keep CI green on warnings for now; tighten once the API stabilises. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

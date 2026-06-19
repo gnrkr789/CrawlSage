@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CrawlSage/CrawlSage.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CrawlSage.Tests/CrawlSage.Tests.fsproj" />
+  </Folder>
+</Solution>
