@@ -46,7 +46,12 @@ module Rotation =
     let proxiedFetch (proxyUrls: string list) : Renderer =
         let clients =
             proxyUrls
-            |> List.map (fun url -> new HttpClient(new HttpClientHandler(Proxy = WebProxy(url), UseProxy = true)))
+            |> List.map (fun url ->
+                new HttpClient(
+                    new HttpClientHandler(
+                        Proxy = WebProxy(url),
+                        UseProxy = true,
+                        AutomaticDecompression = DecompressionMethods.All)))
 
         match clients with
         | [] -> Http.fetch

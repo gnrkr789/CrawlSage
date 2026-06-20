@@ -1,5 +1,6 @@
 namespace CrawlSage
 
+open System.Net
 open System.Net.Http
 
 /// Minimal, F#-idiomatic HTTP fetching built on <see cref="T:System.Net.Http.HttpClient"/>.
@@ -11,7 +12,10 @@ module Http =
     /// A single shared client. <c>HttpClient</c> is thread-safe and meant to be reused;
     /// creating one per request exhausts sockets under load.
     let private client =
-        let c = new HttpClient()
+        // Negotiate gzip/deflate/brotli and decompress transparently — less bandwidth, and
+        // correct bodies from hosts that compress by default.
+        let handler = new HttpClientHandler(AutomaticDecompression = DecompressionMethods.All)
+        let c = new HttpClient(handler)
         c.DefaultRequestHeaders.Add("User-Agent", "CrawlSage/0.1 (+https://github.com/gnrkr789/CrawlSage)")
         c
 
