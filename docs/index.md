@@ -26,21 +26,66 @@ browser-free extraction of embedded data, and polite-by-default crawl ops.
 The API is F#-idiomatic — records, discriminated unions, pipelines and computation
 expressions instead of attributes and inheritance.
 
+## What you get
+
+- **Resilient downloader** — retry/back-off, timeouts, throttling, gzip; plus binary file downloads.
+- **Spider engine** — a frontier scheduler with dedup, depth bounds, per-page fault tolerance and
+  a stats/logging hook. Swap in a **resumable** (disk-backed) or **bounded** frontier.
+- **Parse & extract** — forgiving CSS selectors, link extraction, and embedded-JSON extraction
+  (`__NEXT_DATA__`, JSON-LD, assigned globals) — no browser.
+- **Polite by default** — `robots.txt`, per-host pacing, honest UA / proxy rotation, sitemap discovery.
+- **Sessions** — cookie-jar login, saved and restored across runs.
+- **Output** — JSON / JSON Lines / CSV / Deedle data frames.
+- **JS when you must** — an opt-in headless-Chromium renderer, kept out of the core.
+
+Full API in the **[Guide](guide.html)**; runnable crawlers in the **[Cookbook](cookbook.html)**.
+
 ## Status
 
-🚧 **Early development.** A buildable core ships today (`Request`, `Response`,
-`Http.fetch`); the engine, parsing DSL, extraction and cookbook are built out phase by phase.
+🚧 **Early (v0), but capable.** The framework is implemented end to end — resilient downloader,
+parsing DSL, spider engine, extraction, export, crawl ops, sessions, sitemaps, resumable
+frontiers, an opt-in browser renderer, and a tag-driven NuGet release. 74 tests on net10.0;
+APIs may still shift before 1.0.
 
 ## A taste
+
+Scrape a list with the selector DSL:
 
 ```fsharp
 open CrawlSage
 
-let body =
-    Request.create "https://example.com"
-    |> Request.withHeader "Accept-Language" "en"
-    |> Http.fetch
+let authors =
+    Http.getString "https://quotes.toscrape.com/"
     |> Async.RunSynchronously
-
-printfn "%d — %d bytes" body.StatusCode body.Body.Length
+    |> Html.parse
+    |> Html.selectAll ".quote .author"
+    |> List.map Html.text
 ```
+
+Or run a full crawl — follow links, stream JSON Lines, polite by default:
+
+```fsharp
+open CrawlSage
+
+type Quote = { Text: string; Author: string }
+
+let parse (response: Response) : ParseResult<Quote> list =
+    let doc = Html.parse response.Body
+    let items =
+        doc
+        |> Html.selectAll ".quote"
+        |> List.map (fun q ->
+            Item
+                { Text = q |> Html.select ".text" |> Option.map Html.text |> Option.defaultValue ""
+                  Author = q |> Html.select ".author" |> Option.map Html.text |> Option.defaultValue "" })
+    items @ (doc |> Html.links response.Request.Url |> List.map (Request.create >> Follow))
+
+{ Seeds = [ Request.create "https://quotes.toscrape.com/" ]
+  Parse = parse
+  Pipeline = Export.appendJsonLine "data/quotes.jsonl"
+  Options = SpiderOptions.Default }
+|> Spider.crawl
+|> Async.RunSynchronously
+```
+
+→ everything, module by module, is in the **[Guide](guide.html)**.
