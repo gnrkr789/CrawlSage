@@ -10,9 +10,9 @@ Python's Scrapy. The mission is to close the gaps that make F# feel second-class
 crawling: no dedicated framework, few real-world examples, verbose HTML parsing,
 sparse dynamic-page samples, weaker data post-processing.
 
-It is built **incrementally** — the phased plan in [PROMPTS.md](PROMPTS.md) is the
-source of truth for what to build next. When asked to "continue the framework," read
-that file and pick up the next unchecked phase.
+It is built **incrementally** — the phased plan in `PROMPTS.md` (kept locally, not
+committed) is the source of truth for what to build next. When asked to "continue the
+framework," read that file and pick up the next unchecked phase.
 
 ## Commands
 
