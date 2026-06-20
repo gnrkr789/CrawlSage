@@ -48,16 +48,12 @@ type Spider<'Item> =
       /// Engine limits.
       Options: SpiderOptions }
 
-/// The crawl engine — a breadth-first scheduler with dedup and depth bounding.
-///
-/// Each depth level is fetched concurrently (bounded by <c>MaxConcurrency</c>); the
-/// results are parsed sequentially, so the dedup set, the pipeline and the frontier are
-/// never touched concurrently. The crawl ends when a level produces no new requests.
+/// The crawl engine — a frontier-driven scheduler with dedup and depth bounding. Work is
+/// pulled from a <see cref="T:CrawlSage.Frontier"/> in <c>MaxConcurrency</c>-sized batches,
+/// fetched concurrently, then parsed sequentially (so the pipeline and frontier are never
+/// touched concurrently). Items go to the pipeline, follow-ups back to the frontier. The
+/// crawl ends when the frontier drains.
 module Spider =
-
-    /// Dedup key: method + canonicalised URL (see <see cref="M:CrawlSage.Url.normalize"/>).
-    let private fingerprint (request: Request) : string =
-        $"{request.Method}|{Url.normalize request.Url}"
 
     /// Build a spider from seeds, a parser and a pipeline, with default options.
     let create
@@ -70,61 +66,63 @@ module Spider =
           Pipeline = pipeline
           Options = SpiderOptions.Default }
 
-    /// The core breadth-first loop shared by every entry point. <paramref name="allow"/>
-    /// decides whether a request is fetched at all (the robots gate; disallowed URLs are
-    /// dropped before fetch *and* parse), and <paramref name="fetch"/> performs the download.
-    let private run (allow: Request -> Async<bool>) (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
+    /// The core loop shared by every entry point. Pulls batches from <paramref name="frontier"/>,
+    /// applies the <paramref name="allow"/> gate (robots; disallowed URLs are dropped before
+    /// fetch *and* parse), fetches concurrently, routes items to the pipeline and follow-ups
+    /// back to the frontier (depth-bounded), until the frontier drains.
+    let private runWith
+        (frontier: Frontier)
+        (allow: Request -> Async<bool>)
+        (fetch: Renderer)
+        (spider: Spider<'Item>)
+        : Async<unit> =
         async {
-            let seen = System.Collections.Generic.HashSet<string>()
             let maxDepth = spider.Options.MaxDepth
             let maxConcurrency = max 1 spider.Options.MaxConcurrency
 
-            // Seeds are depth 0, after dedup.
-            let seedLevel = spider.Seeds |> List.filter (fun r -> seen.Add(fingerprint r))
+            for seed in spider.Seeds do
+                frontier.Add seed 0 |> ignore
 
-            let rec loop (level: Request list) (depth: int) : Async<unit> =
+            let rec loop () : Async<unit> =
                 async {
-                    if List.isEmpty level then
-                        return ()
-                    else
+                    match frontier.Take maxConcurrency with
+                    | [] -> return ()
+                    | batch ->
                         // Robots gate: drop disallowed URLs before fetching (checked in parallel).
-                        let! flags = level |> List.map allow |> Async.Parallel
+                        let! flags = batch |> List.map (fun (request, _) -> allow request) |> Async.Parallel
 
                         let toFetch =
-                            List.zip level (List.ofArray flags)
-                            |> List.choose (fun (request, ok) -> if ok then Some request else None)
+                            List.zip batch (List.ofArray flags)
+                            |> List.choose (fun (item, ok) -> if ok then Some item else None)
 
-                        let! responses = Async.Parallel(toFetch |> List.map fetch, maxConcurrency)
-                        let nextLevel = ResizeArray<Request>()
+                        let! responses =
+                            Async.Parallel(toFetch |> List.map (fun (request, _) -> fetch request), maxConcurrency)
 
-                        for response in responses do
+                        for (_, depth), response in List.zip toFetch (List.ofArray responses) do
                             for result in spider.Parse response do
                                 match result with
                                 | Item item -> spider.Pipeline item
-                                | Follow request ->
-                                    if depth < maxDepth && seen.Add(fingerprint request) then
-                                        nextLevel.Add request
+                                | Follow next ->
+                                    if depth < maxDepth then
+                                        frontier.Add next (depth + 1) |> ignore
 
-                        return! loop (List.ofSeq nextLevel) (depth + 1)
+                        return! loop ()
                 }
 
-            do! loop seedLevel 0
+            do! loop ()
         }
 
     /// Always-allow gate — no robots check.
     let private allowAll: Request -> Async<bool> = fun _ -> async { return true }
 
-    /// Run <paramref name="spider"/> with an explicit fetch function and no politeness gate
-    /// — inject a stub in tests, or compose your own middleware. Use <c>crawl</c> for the
-    /// polite production downloader.
-    let crawlWith (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
-        run allowAll fetch spider
-
-    /// Run <paramref name="spider"/> politely over <paramref name="fetch"/>: consult each
-    /// host's robots.txt (skipping disallowed URLs) and space out per-host requests,
-    /// honouring a host's robots <c>Crawl-delay</c> when it exceeds <c>PerHostDelay</c>.
-    /// robots.txt itself is fetched over <paramref name="fetch"/> but never paced or gated.
-    let crawlPolitely (politeness: Politeness) (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
+    /// Shared politeness wiring: builds the robots cache, the per-host pacer and the robots
+    /// gate over <paramref name="fetch"/>, then runs the crawl on <paramref name="frontier"/>.
+    let private runPolitely
+        (frontier: Frontier)
+        (politeness: Politeness)
+        (fetch: Renderer)
+        (spider: Spider<'Item>)
+        : Async<unit> =
         let cache = Robots.Cache(fetch, politeness.UserAgent)
 
         let delayFor (request: Request) =
@@ -148,7 +146,28 @@ module Spider =
             else
                 async { return true }
 
-        run allow paced spider
+        runWith frontier allow paced spider
+
+    /// Run <paramref name="spider"/> with an explicit fetch function and no politeness gate
+    /// — inject a stub in tests, or compose your own middleware. Uses an in-memory frontier.
+    let crawlWith (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
+        runWith (Frontier.inMemory ()) allowAll fetch spider
+
+    /// Run <paramref name="spider"/> politely over <paramref name="fetch"/> on an explicit
+    /// <paramref name="frontier"/> — pass <c>Frontier.persistent</c> for a resumable crawl.
+    /// Consults robots.txt (skipping disallowed URLs) and spaces out per-host requests.
+    let crawlOn
+        (frontier: Frontier)
+        (politeness: Politeness)
+        (fetch: Renderer)
+        (spider: Spider<'Item>)
+        : Async<unit> =
+        runPolitely frontier politeness fetch spider
+
+    /// Run <paramref name="spider"/> politely over <paramref name="fetch"/> on an in-memory
+    /// frontier (<see cref="M:CrawlSage.Spider.crawlOn"/> with the default frontier).
+    let crawlPolitely (politeness: Politeness) (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
+        runPolitely (Frontier.inMemory ()) politeness fetch spider
 
     /// Run <paramref name="spider"/> with the production downloader
     /// (<c>Resilience.politeFetch</c>: throttled, retried, timed-out), politely:

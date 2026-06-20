@@ -28,6 +28,7 @@
     <Compile Include="Html.fs" />
     <Compile Include="Extract.fs" />
     <Compile Include="Robots.fs" />
+    <Compile Include="Frontier.fs" />
     <Compile Include="Spider.fs" />
     <Compile Include="Export.fs" />
   </ItemGroup>
