@@ -124,25 +124,32 @@ let ``perHostDelay spaces out consecutive same-host requests`` () =
 
 [<Fact>]
 let ``perHostDelay lets different hosts run concurrently`` () =
+    let mutable current = 0
+    let mutable peak = 0
+    let sync = obj ()
+
     let stub (request: Request) =
         async {
+            lock sync (fun () ->
+                current <- current + 1
+                peak <- max peak current)
+
             do! Async.Sleep 100
+            lock sync (fun () -> current <- current - 1)
             return resp request 200 ""
         }
 
-    let fetch = Robots.perHostDelay (TimeSpan.FromMilliseconds 500.0) stub
-    let sw = Stopwatch.StartNew()
+    // A large per-host delay only serialises *same*-host requests; distinct hosts each get
+    // their own gate, so these two overlap. Asserting peak concurrency (not wall-clock time)
+    // keeps the test deterministic on slow/loaded CI runners.
+    let fetch = Robots.perHostDelay (TimeSpan.FromSeconds 5.0) stub
 
     [ fetch (Request.create "https://a/x"); fetch (Request.create "https://b/x") ]
     |> Async.Parallel
     |> Async.RunSynchronously
     |> ignore
 
-    sw.Stop()
-    // Distinct hosts aren't serialised: ~100ms (one sleep), not the 500ms per-host gap.
-    Assert.True(
-        sw.Elapsed < TimeSpan.FromMilliseconds 450.0,
-        $"elapsed {sw.ElapsedMilliseconds}ms; hosts were serialised")
+    Assert.True(peak >= 2, $"peak concurrency was {peak}; different hosts were serialised")
 
 // ---- engine integration ----------------------------------------------------
 
