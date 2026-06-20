@@ -59,3 +59,22 @@ let ``parse recovers from malformed HTML like a browser`` () =
         |> List.length
 
     Assert.True(paragraphs >= 2)
+
+[<Fact>]
+let ``links resolves, filters and de-duplicates anchors`` () =
+    let html =
+        """
+        <a href="/page/2/">next</a>
+        <a href="https://other.com/x">external</a>
+        <a href="/page/2/">dup</a>
+        <a href="#section">anchor</a>
+        <a href="javascript:void(0)">js</a>
+        <a href="mailto:a@b.com">mail</a>
+        """
+
+    let links = Html.parse html |> Html.links "https://site.com/list"
+
+    Assert.Equal<string list>(
+        [ "https://site.com/page/2/"; "https://other.com/x" ],
+        links
+    )

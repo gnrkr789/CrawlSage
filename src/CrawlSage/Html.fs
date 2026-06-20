@@ -1,5 +1,6 @@
 namespace CrawlSage
 
+open System
 open AngleSharp.Dom
 open AngleSharp.Html.Parser
 
@@ -36,3 +37,20 @@ module Html =
     /// Value of an attribute, or <paramref name="fallback"/> when it is absent.
     let attrOr (fallback: string) (name: string) (element: IElement) : string =
         attr name element |> Option.defaultValue fallback
+
+    /// Every link on the page as an absolute URL: the <c>href</c> of each <c>&lt;a&gt;</c>,
+    /// resolved against <paramref name="baseUrl"/> (usually the page's own URL) and
+    /// de-duplicated in document order. Fragment-only, <c>javascript:</c> and <c>mailto:</c>
+    /// hrefs are dropped — feed the result straight to <c>Request.create &gt;&gt; Follow</c>.
+    let links (baseUrl: string) (node: IParentNode) : string list =
+        node
+        |> selectAll "a[href]"
+        |> List.choose (attr "href")
+        |> List.map (fun href -> href.Trim())
+        |> List.filter (fun href ->
+            href <> ""
+            && not (href.StartsWith "#")
+            && not (href.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase))
+            && not (href.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase)))
+        |> List.map (Url.resolve baseUrl)
+        |> List.distinct

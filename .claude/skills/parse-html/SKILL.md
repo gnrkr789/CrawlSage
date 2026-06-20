@@ -52,6 +52,21 @@ let rows =
         | _ -> None)
 ```
 
+## Following links
+
+`Html.links` pulls every `<a href>` on a page, resolves each to an absolute URL against the
+page's own URL, drops `#`/`javascript:`/`mailto:` hrefs, and de-duplicates — ready to follow:
+
+```fsharp
+let follows =
+    Html.parse response.Body
+    |> Html.links response.Request.Url
+    |> List.filter (Url.isSameHost response.Request.Url)   // stay on-site (optional)
+    |> List.map (Request.create >> Follow)
+```
+
+`Url.resolve` / `Url.normalize` / `Url.isSameHost` are the underlying URL helpers.
+
 ## Extending it
 
 Need a new helper (XPath, table extraction, `attrMany`)? Add it to `Html.fs`, keep it
