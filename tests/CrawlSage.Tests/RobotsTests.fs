@@ -124,6 +124,7 @@ let ``perHostDelay spaces out consecutive same-host requests`` () =
 
 [<Fact>]
 let ``perHostDelay lets different hosts run concurrently`` () =
+    System.Threading.ThreadPool.SetMinThreads(32, 32) |> ignore // threads ready, so tasks overlap
     let mutable current = 0
     let mutable peak = 0
     let sync = obj ()
@@ -134,7 +135,7 @@ let ``perHostDelay lets different hosts run concurrently`` () =
                 current <- current + 1
                 peak <- max peak current)
 
-            do! Async.Sleep 100
+            do! Async.Sleep 200
             lock sync (fun () -> current <- current - 1)
             return resp request 200 ""
         }

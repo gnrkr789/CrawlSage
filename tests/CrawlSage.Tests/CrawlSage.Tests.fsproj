@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Tests.fs" />
     <Compile Include="UrlTests.fs" />
     <Compile Include="ResilienceTests.fs" />
