@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/gnrkr789/CrawlSage/actions/workflows/ci.yml/badge.svg)](https://github.com/gnrkr789/CrawlSage/actions/workflows/ci.yml)
 [![Docs](https://github.com/gnrkr789/CrawlSage/actions/workflows/docs.yml/badge.svg)](https://gnrkr789.github.io/CrawlSage/)
+[![NuGet](https://img.shields.io/nuget/v/CrawlSage.svg)](https://www.nuget.org/packages/CrawlSage/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Status](https://img.shields.io/badge/status-early%20development-orange)
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
@@ -43,9 +44,20 @@ Two principles shape it:
 
 ## Status
 
-🚧 **Early development.** A buildable core is in place and the framework grows phase by phase.
-Phases 0–7 are done: resilient downloader, parsing DSL, spider engine, extraction, export,
-crawl ops, and a runnable sample cookbook. Packaging is next.
+🚧 **Early development.** Phases 0–8 are in place: resilient downloader, parsing DSL, spider
+engine, extraction, export, crawl ops, a runnable sample cookbook, and a tag-driven NuGet
+release workflow. Not yet published to NuGet.
+
+---
+
+## Install
+
+```bash
+dotnet add package CrawlSage
+```
+
+The package publishes on a version tag (see [Releasing](#releasing)); until then, build from
+source.
 
 ---
 
@@ -122,7 +134,21 @@ CrawlSage/
 | 5 | **Data pipelines** ✅ | JSON / JSONL / CSV sinks + data frames |
 | 6 | **Crawl ops** ✅ | robots.txt, per-host rate limit, UA & proxy rotation |
 | 7 | **Cookbook** ✅ | runnable recipes in `samples/` |
-| 8 | **Packaging** | NuGet release, versioned docs |
+| 8 | **Packaging** ✅ | tag-driven NuGet release (pack · symbols · publish) |
+
+---
+
+## Releasing
+
+Releases are tag-driven. Add a `NUGET_API_KEY` repository secret
+(Settings → Secrets and variables → Actions), then push a version tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow builds, tests, packs (with a symbols package), and publishes to NuGet.
 
 ---
 

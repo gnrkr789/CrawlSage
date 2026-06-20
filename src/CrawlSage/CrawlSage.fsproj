@@ -3,7 +3,21 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- NuGet packaging. Shared metadata (Description, Authors, License, RepositoryUrl,
+         Tags, Version) comes from Directory.Build.props; the release workflow drives the
+         version from the git tag. -->
+    <PackageId>CrawlSage</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Framework core through Phase 7: resilient downloader, HTML parsing DSL, spider engine, embedded-JSON extraction, export sinks, robots.txt + per-host pacing, UA/proxy rotation, and a runnable sample cookbook.</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Ship the README as the package landing page. -->
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Types.fs" />
