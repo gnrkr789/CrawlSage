@@ -135,6 +135,21 @@ Spider.crawlPolitely politeness Resilience.politeFetch spider |> Async.RunSynchr
 Need pacing without the engine? `Robots.perHostDelay (TimeSpan.FromSeconds 1.0)` is a
 fetch wrapper you can drop into the stack above.
 
+## Observability
+
+The engine emits `CrawlEvent`s (`Fetched` / `Skipped` / `Failed`) to `SpiderOptions.OnEvent`.
+Wire `Stats.console` to log, or `Stats.collector` to tally:
+
+```fsharp
+let stats, handle = Stats.collector ()
+let spider = { spider with Options = { spider.Options with OnEvent = handle } }
+spider |> Spider.crawl |> Async.RunSynchronously
+printfn "fetched %d, skipped %d, failed %d" stats.Fetched stats.Skipped stats.Failed
+```
+
+A per-page fetch failure is reported as `Failed` and the crawl continues — one bad page
+never aborts the run (cancellation still propagates).
+
 ## Timeouts
 
 Set `HttpClient.Timeout` (or a Polly timeout policy) so a single hung request can't

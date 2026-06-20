@@ -128,3 +128,56 @@ let ``crawl with no seeds fetches nothing`` () =
 
     Spider.crawlWith stub spider |> Async.RunSynchronously
     Assert.Equal(0, fetched)
+
+[<Fact>]
+let ``crawl reports stats through OnEvent`` () =
+    let site =
+        Map.ofList
+            [ "https://news/page/1", """<h1>P1</h1><a href="https://news/page/2">next</a>"""
+              "https://news/page/2", "<h1>P2</h1>" ]
+
+    let counter = Dictionary<string, int>()
+    let stats, handle = Stats.collector ()
+
+    let spider =
+        { Seeds = [ Request.create "https://news/page/1" ]
+          Parse = linkParse
+          Pipeline = ignore
+          Options = { SpiderOptions.Default with OnEvent = handle } }
+
+    Spider.crawlWith (stubFrom site counter) spider |> Async.RunSynchronously
+
+    Assert.Equal(2, stats.Fetched)
+    Assert.Equal(2, stats.Status.[200])
+    Assert.Equal(0, stats.Failed)
+
+[<Fact>]
+let ``a failing fetch is recorded but not fatal`` () =
+    let mutable failures = 0
+
+    let stub (request: Request) =
+        async {
+            if request.Url.EndsWith "/bad" then
+                return raise (System.Exception "boom")
+            else
+                return ok request.Url "<h1>ok</h1>"
+        }
+
+    let items = ResizeArray<Page>()
+
+    let onEvent event =
+        match event with
+        | Failed _ -> failures <- failures + 1
+        | _ -> ()
+
+    let spider =
+        { Seeds = [ Request.create "https://site/good"; Request.create "https://site/bad" ]
+          Parse = linkParse
+          Pipeline = items.Add
+          Options = { SpiderOptions.Default with OnEvent = onEvent } }
+
+    // The bad page throws, but the crawl finishes and still scrapes the good one.
+    Spider.crawlWith stub spider |> Async.RunSynchronously
+
+    Assert.Equal(1, failures)
+    Assert.True(items |> Seq.exists (fun p -> p.Title = "ok"))

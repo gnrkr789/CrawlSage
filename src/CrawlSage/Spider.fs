@@ -8,15 +8,78 @@ type ParseResult<'Item> =
     | Item of 'Item
     | Follow of Request
 
-/// Tunable engine limits.
+/// Something the engine did while crawling — wire <c>SpiderOptions.OnEvent</c> to observe it.
+[<NoComparison>]
+type CrawlEvent =
+    /// A page was fetched, with its HTTP status code.
+    | Fetched of Request * status: int
+    /// A URL was skipped because robots.txt disallowed it.
+    | Skipped of Request
+    /// A fetch failed (after retries); the crawl records it and moves on.
+    | Failed of Request * exn
+
+/// A mutable tally of crawl progress, filled by the handler from <c>Stats.collector</c>.
+[<NoComparison; NoEquality>]
+type Stats =
+    { /// Pages successfully fetched.
+      mutable Fetched: int
+      /// URLs skipped by the robots gate.
+      mutable Skipped: int
+      /// Fetches that failed after retries.
+      mutable Failed: int
+      /// Count of fetched pages by HTTP status code.
+      Status: System.Collections.Generic.Dictionary<int, int> }
+
+/// Observability — turn the engine's <c>CrawlEvent</c>s into a tally or a log line.
+module Stats =
+
+    /// A fresh tally plus the event handler that fills it: wire the handler to
+    /// <c>SpiderOptions.OnEvent</c> and read the tally once the crawl finishes.
+    let collector () : Stats * (CrawlEvent -> unit) =
+        let stats =
+            { Fetched = 0
+              Skipped = 0
+              Failed = 0
+              Status = System.Collections.Generic.Dictionary<int, int>() }
+
+        let handle event =
+            match event with
+            | Fetched(_, status) ->
+                stats.Fetched <- stats.Fetched + 1
+
+                let previous =
+                    match stats.Status.TryGetValue status with
+                    | true, count -> count
+                    | _ -> 0
+
+                stats.Status.[status] <- previous + 1
+            | Skipped _ -> stats.Skipped <- stats.Skipped + 1
+            | Failed _ -> stats.Failed <- stats.Failed + 1
+
+        stats, handle
+
+    /// A ready-made console logger for <c>SpiderOptions.OnEvent</c>.
+    let console (event: CrawlEvent) : unit =
+        match event with
+        | Fetched(request, status) -> printfn "%3d  %s" status request.Url
+        | Skipped request -> printfn "skip %s (robots)" request.Url
+        | Failed(request, error) -> printfn "FAIL %s — %s" request.Url error.Message
+
+/// Tunable engine limits and the observability hook.
+[<NoComparison; NoEquality>]
 type SpiderOptions =
-    { /// Maximum concurrent fetches within one depth level.
+    { /// Maximum concurrent fetches in flight.
       MaxConcurrency: int
       /// How many links deep to follow from the seeds (0 = seeds only).
-      MaxDepth: int }
+      MaxDepth: int
+      /// Observe crawl progress (logging / metrics); defaults to a no-op.
+      OnEvent: CrawlEvent -> unit }
 
-    /// 8-wide, 16 levels deep.
-    static member Default = { MaxConcurrency = 8; MaxDepth = 16 }
+    /// 8-wide, 16 levels deep, no event handler.
+    static member Default =
+        { MaxConcurrency = 8
+          MaxDepth = 16
+          OnEvent = ignore }
 
 /// How a crawl paces itself and respects robots.txt — politeness, not evasion. Consulted
 /// by <c>Spider.crawlPolitely</c>, and so by the production <c>Spider.crawl</c>.
@@ -88,17 +151,40 @@ module Spider =
                     match frontier.Take maxConcurrency with
                     | [] -> return ()
                     | batch ->
-                        // Robots gate: drop disallowed URLs before fetching (checked in parallel).
+                        let onEvent = spider.Options.OnEvent
+
+                        // Robots gate (checked in parallel); disallowed URLs are skipped.
                         let! flags = batch |> List.map (fun (request, _) -> allow request) |> Async.Parallel
 
                         let toFetch =
                             List.zip batch (List.ofArray flags)
-                            |> List.choose (fun (item, ok) -> if ok then Some item else None)
+                            |> List.choose (fun ((request, depth), ok) ->
+                                if ok then
+                                    Some(request, depth)
+                                else
+                                    onEvent (Skipped request)
+                                    None)
 
-                        let! responses =
-                            Async.Parallel(toFetch |> List.map (fun (request, _) -> fetch request), maxConcurrency)
+                        // Fetch concurrently; a per-page failure is recorded, not fatal — so one
+                        // bad page never aborts the crawl. Cancellation still propagates.
+                        let! results =
+                            Async.Parallel(
+                                toFetch
+                                |> List.map (fun (request, depth) ->
+                                    async {
+                                        try
+                                            let! response = fetch request
+                                            return Some(request, depth, response)
+                                        with ex when not (ex :? OperationCanceledException) ->
+                                            onEvent (Failed(request, ex))
+                                            return None
+                                    }),
+                                maxConcurrency
+                            )
 
-                        for (_, depth), response in List.zip toFetch (List.ofArray responses) do
+                        for request, depth, response in results |> Array.choose id do
+                            onEvent (Fetched(request, response.StatusCode))
+
                             for result in spider.Parse response do
                                 match result with
                                 | Item item -> spider.Pipeline item
