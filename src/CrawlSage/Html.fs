@@ -3,7 +3,7 @@ namespace CrawlSage
 open AngleSharp.Dom
 open AngleSharp.Html.Parser
 
-/// Forgiving HTML parsing + CSS-selector queries — BeautifulSoup-style, over AngleSharp.
+/// Forgiving HTML parsing + CSS-selector queries over AngleSharp.
 ///
 /// Functions are curried with the node/element **last** so queries pipe with <c>|&gt;</c>,
 /// and every lookup returns an <c>option</c> instead of null. Feed canned HTML strings to

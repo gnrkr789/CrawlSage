@@ -8,8 +8,8 @@ open Deedle
 
 /// Output sinks — get scraped data *out*. Stream items to a file as you crawl (partially
 /// apply a path to get a <see cref="T:CrawlSage.Sink`1"/> for a <c>Spider.Pipeline</c>),
-/// or write a finished batch. <c>toFrame</c> is the on-ramp to Deedle for pandas-style
-/// post-processing — the data-wrangling story F# is often said to lack.
+/// or write a finished batch. <c>toFrame</c> is the on-ramp to Deedle data frames for
+/// post-processing (group, pivot, aggregate, join).
 module Export =
 
     let private jsonOptions = JsonSerializerOptions(WriteIndented = true)
@@ -39,7 +39,7 @@ module Export =
     /// A sink that prints each item with <c>%A</c> — handy while developing a crawler.
     let console (item: 'T) : unit = printfn "%A" item
 
-    /// Build a Deedle data frame from records — the entry point to pandas-style
+    /// Build a Deedle data frame from records — the entry point to data-frame
     /// post-processing (group, pivot, aggregate, join) before saving.
     let toFrame (items: 'T seq) : Frame<int, string> =
         Frame.ofRecords items

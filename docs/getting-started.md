@@ -137,7 +137,7 @@ Spider.crawl spider |> Async.RunSynchronously
 ```
 
 Already hold everything in memory? `Export.toJson` / `toCsv` write a batch, and
-`Export.toFrame` opens it in Deedle for pandas-style analysis.
+`Export.toFrame` opens it as a Deedle data frame for analysis.
 
 ## What's next
 

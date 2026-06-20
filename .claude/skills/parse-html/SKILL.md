@@ -5,8 +5,8 @@ description: Parse and extract data from HTML in CrawlSage using AngleSharp with
 
 # parse-html
 
-CrawlSage parses HTML with **AngleSharp** (a standards-compliant, forgiving parser —
-the closest .NET has to BeautifulSoup) behind a thin F# module, `Html.fs`.
+CrawlSage parses HTML with **AngleSharp** (a standards-compliant, forgiving parser)
+behind a thin F# module, `Html.fs`.
 
 ## The `Html` module (shipped — Phase 2)
 
@@ -33,7 +33,7 @@ let doc =
     |> Async.RunSynchronously
     |> Html.parse
 
-// A list of records, BeautifulSoup-style.
+// A list of records.
 let stories =
     doc
     |> Html.selectAll ".titleline > a"

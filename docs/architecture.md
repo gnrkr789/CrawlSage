@@ -62,5 +62,5 @@ seed Requests
 ```
 
 The parser yields two things: **items** (scraped data → pipelines) and **follow-up
-requests** (→ back to the scheduler), exactly like Scrapy's callback model — but
-expressed as an F# function returning a discriminated union.
+requests** (→ back to the scheduler), expressed as an F# function returning a
+discriminated union.

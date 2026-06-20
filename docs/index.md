@@ -6,7 +6,6 @@ title: CrawlSage
 # CrawlSage
 
 **An F#-first web crawling & scraping framework for .NET.**
-Scrapy-grade ergonomics, BeautifulSoup-grade convenience — with the type safety of F#.
 
 [Getting started](getting-started.html){: .btn } &nbsp;
 [Architecture](architecture.html){: .btn } &nbsp;
@@ -17,16 +16,12 @@ Scrapy-grade ergonomics, BeautifulSoup-grade convenience — with the type safet
 
 ## Why CrawlSage?
 
-F# can crawl the web today — `HttpClient`, AngleSharp, HtmlAgilityPack and Playwright
-for .NET are all excellent. But next to Python (BeautifulSoup, Scrapy, Selenium,
-Playwright) the F# story has gaps: no dedicated framework, few real-world examples,
-verbose HTML parsing, sparse dynamic-page samples, weaker data post-processing.
+CrawlSage gives F# a complete crawling stack: a crawl engine (request queue, dedup,
+scheduler, item pipelines) over a resilient downloader, a concise HTML selector DSL,
+browser-free extraction of embedded data, and polite-by-default crawl ops.
 
-CrawlSage closes those gaps with an F#-idiomatic API — records, discriminated unions,
-pipelines and computation expressions instead of attributes and inheritance.
-
-> CrawlSage is to F# what [DotnetSpider](https://github.com/dotnetcore/DotnetSpider)
-> is to C#.
+The API is F#-idiomatic — records, discriminated unions, pipelines and computation
+expressions instead of attributes and inheritance.
 
 ## Status
 

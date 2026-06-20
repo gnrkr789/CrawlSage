@@ -6,7 +6,7 @@ description: Handle JavaScript-heavy / "dynamic" pages in CrawlSage WITHOUT a br
 # dynamic-page
 
 CrawlSage's stance: **don't render — extract.** A real browser is heavy, fragile and a
-foreign dependency that would make CrawlSage "just a Playwright wrapper." Most "dynamic"
+foreign dependency that would make CrawlSage "just a browser wrapper." Most "dynamic"
 pages aren't: SSR / hydration frameworks ship the data *inside* the HTML as JSON, or the
 page fetches it from a discoverable JSON API. Get the data behind the page and you skip the
 browser entirely.

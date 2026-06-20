@@ -1,14 +1,14 @@
 ---
 name: data-export
-description: Export scraped data from CrawlSage to JSON, JSON Lines, CSV or a database, and into Deedle for pandas-style analysis. Use when the user wants to save/persist/write scraped results, produce a CSV/JSON file, wire a Spider pipeline to disk, or post-process data. Covers the Export module and the Sink seam.
+description: Export scraped data from CrawlSage to JSON, JSON Lines, CSV or a database, and into Deedle data frames for analysis. Use when the user wants to save/persist/write scraped results, produce a CSV/JSON file, wire a Spider pipeline to disk, or post-process data. Covers the Export module and the Sink seam.
 ---
 
 # data-export
 
 Scraping is half the job — the data has to land somewhere. CrawlSage models output as
 **sinks**: `Sink<'T> = 'T -> unit`, the exact shape of a `Spider.Pipeline`. Stream items to
-a file as you crawl, or write a finished batch; `toFrame` hands off to Deedle for
-pandas-style work — the data-wrangling story F# is often said to lack.
+a file as you crawl, or write a finished batch; `toFrame` hands off to Deedle data frames
+for analysis (group, pivot, aggregate, join).
 
 ## The `Export` module (shipped — Phase 5)
 
@@ -53,7 +53,7 @@ When you already hold all the items:
 Export.toJson "data/items.json" items
 Export.toCsv  "data/items.csv"  items          // item type must be a public record
 
-let frame = Export.toFrame items               // pandas-style from here
+let frame = Export.toFrame items               // data-frame analysis from here
 // frame |> Frame.groupRowsBy "category" |> Frame.…
 ```
 

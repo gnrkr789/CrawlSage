@@ -7,8 +7,7 @@ title: Cookbook
 
 [← Home](index.html)
 
-Real-world recipes — the examples that are abundant for Python and scarce for F#.
-Each one lands as a runnable sample under
+Real-world recipes as runnable F# samples. Each one lands under
 [`samples/`](https://github.com/gnrkr789/CrawlSage/tree/main/samples) as the matching
 phase is built. This page is the index of what's planned.
 

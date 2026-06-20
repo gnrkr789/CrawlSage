@@ -43,7 +43,7 @@ let ``attr reads a present attribute and None for an absent one`` () =
     Assert.True((firstLink |> Option.bind (Html.attr "rel")).IsNone)
 
 [<Fact>]
-let ``selectAll then map extracts hrefs BeautifulSoup-style`` () =
+let ``selectAll then map extracts hrefs`` () =
     let hrefs =
         Html.parse sample
         |> Html.selectAll "li.item > a"
