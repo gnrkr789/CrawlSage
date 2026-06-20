@@ -46,7 +46,7 @@ Two principles shape it:
 
 🚧 **Early development.** Phases 0–8 are in place: resilient downloader, parsing DSL, spider
 engine, extraction, export, crawl ops, a runnable sample cookbook, and a tag-driven NuGet
-release workflow. Not yet published to NuGet.
+release workflow.
 
 ---
 
@@ -55,9 +55,6 @@ release workflow. Not yet published to NuGet.
 ```bash
 dotnet add package CrawlSage
 ```
-
-The package publishes on a version tag (see [Releasing](#releasing)); until then, build from
-source.
 
 ---
 

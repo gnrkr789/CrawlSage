@@ -4,11 +4,10 @@ Guidance for [Claude Code](https://claude.com/claude-code) working in this repos
 
 ## What this is
 
-CrawlSage is an **F#-first web crawling & scraping framework** for .NET — the F#
-counterpart to C#'s [DotnetSpider](https://github.com/dotnetcore/DotnetSpider) and
-Python's Scrapy. The mission is to close the gaps that make F# feel second-class for
-crawling: no dedicated framework, few real-world examples, verbose HTML parsing,
-sparse dynamic-page samples, weaker data post-processing.
+CrawlSage is an **F#-first web crawling & scraping framework** for .NET. It provides a
+crawl engine (request queue, dedup, scheduler, item pipelines) over a resilient
+downloader, a concise HTML selector DSL, browser-free extraction of embedded data, and
+first-class politeness — all designed around F# idioms (records, DUs, pipelines).
 
 It is built **incrementally** — the phased plan in `PROMPTS.md` (kept locally, not
 committed) is the source of truth for what to build next. When asked to "continue the
@@ -81,7 +80,7 @@ Add packages with `dotnet add <proj> package <name>`; pin versions in the `.fspr
 **No browser in core.** Dynamic pages are handled by extracting embedded state / JSON
 (`Extract.fs`), not by driving a browser. If a real browser is ever truly needed, it lives
 in a separate **opt-in adapter** implementing `Renderer` — never a core dependency. This is
-deliberate: wrapping Playwright would make CrawlSage "just another wrapper."
+deliberate: wrapping a browser engine would make CrawlSage "just another wrapper."
 
 ## Skills
 
