@@ -6,9 +6,11 @@
     <Project Path="samples/QuotesToCsv/CrawlSage.Samples.QuotesToCsv.fsproj" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/CrawlSage.Browser/CrawlSage.Browser.fsproj" />
     <Project Path="src/CrawlSage/CrawlSage.fsproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/CrawlSage.Browser.Tests/CrawlSage.Browser.Tests.fsproj" />
     <Project Path="tests/CrawlSage.Tests/CrawlSage.Tests.fsproj" />
   </Folder>
 </Solution>

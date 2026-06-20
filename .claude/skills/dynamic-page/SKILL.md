@@ -21,8 +21,9 @@ browser entirely.
    hit it directly with `Http.fetch`; it usually returns clean JSON.
 4. **In-process JS** *(future, opt-in)* — a managed JS engine (Jint) on AngleSharp's DOM,
    for pages that truly compute the DOM client-side. Best-effort, no browser binary.
-5. **External browser** *(opt-in adapter, not core)* — last resort for heavy SPAs / anti-bot.
-   A separate package implementing `Renderer`; the core stays browser-free.
+5. **External browser** *(opt-in adapter — `CrawlSage.Browser`)* — last resort for pages
+   that truly compute their DOM client-side. A separate project driving headless Chromium
+   via Playwright, exposing `Browser.render` as a `Renderer`; the core stays browser-free.
 
 A renderer is just `Renderer = Request -> Async<Response>`, so every rung plugs into
 `Spider.crawlWith` with zero engine changes.
@@ -89,10 +90,20 @@ Faster and far more stable than scraping rendered HTML.
 
 ## When you genuinely need a browser
 
-If the data is neither embedded nor in a reachable API (heavy client-only SPA, anti-bot),
-that's rungs 4–5 — **opt-in and out of the core.** Implement a `Renderer` in a separate
-adapter so CrawlSage's core never takes a browser dependency. Don't reach for one until
-rungs 1–3 are exhausted.
+If the data is neither embedded nor in a reachable API (a page that truly builds its DOM
+client-side), use the opt-in **`CrawlSage.Browser`** adapter — headless Chromium via
+Playwright, kept out of the core. Don't reach for it until rungs 1–3 are exhausted.
+
+```fsharp
+open CrawlSage
+open CrawlSage.Browser
+
+// Browser.render is a Renderer — drop it into the engine like any other.
+Spider.crawlWith Browser.render spider |> Async.RunSynchronously
+```
+
+One-time setup: reference `src/CrawlSage.Browser`, then install the browser binary once with
+`pwsh bin/Debug/net10.0/playwright.ps1 install chromium`.
 
 ## Guidance
 

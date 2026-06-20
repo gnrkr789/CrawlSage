@@ -27,4 +27,6 @@ jobs:
         run: dotnet build CrawlSage.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test CrawlSage.slnx --configuration Release --no-build --verbosity normal
+        # Exclude browser tests (Category=Browser) — they need the Playwright Chromium
+        # binary, which isn't installed on CI. Run them locally with --filter "Category=Browser".
+        run: dotnet test CrawlSage.slnx --configuration Release --no-build --verbosity normal --filter "Category!=Browser"

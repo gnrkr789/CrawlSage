@@ -48,7 +48,7 @@ jobs:
         run: dotnet build CrawlSage.slnx --configuration Release --no-restore -p:Version=${{ steps.version.outputs.version }}
 
       - name: Test
-        run: dotnet test CrawlSage.slnx --configuration Release --no-build
+        run: dotnet test CrawlSage.slnx --configuration Release --no-build --filter "Category!=Browser"
 
       - name: Pack
         run: dotnet pack src/CrawlSage/CrawlSage.fsproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.version }} --output ./artifacts
