@@ -5,7 +5,7 @@ title: Architecture
 
 # Architecture
 
-[← Home](index.html)
+[← Home](index.html) &nbsp;·&nbsp; [Guide](guide.html)
 
 CrawlSage is built in layers. Dependencies flow one way — lower layers never reference
 higher ones — which keeps each piece testable in isolation.

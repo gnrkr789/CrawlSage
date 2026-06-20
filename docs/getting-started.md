@@ -5,7 +5,7 @@ title: Getting started
 
 # Getting started
 
-[← Home](index.html)
+[← Home](index.html) &nbsp;·&nbsp; [Guide](guide.html)
 
 ## Prerequisites
 

@@ -5,7 +5,7 @@ title: Cookbook
 
 # Cookbook
 
-[← Home](index.html)
+[← Home](index.html) &nbsp;·&nbsp; [Guide](guide.html)
 
 Real-world recipes as runnable F# samples. Each one lands under
 [`samples/`](https://github.com/gnrkr789/CrawlSage/tree/main/samples) as the matching

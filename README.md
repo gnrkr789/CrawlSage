@@ -102,6 +102,10 @@ let authors =
 Full crawlers — extract a list, follow pagination, lift embedded JSON, rotate User-Agents —
 are runnable under [`samples/`](samples), each polite by default.
 
+**Detailed usage:** the [**Guide**](https://gnrkr789.github.io/CrawlSage/guide.html) documents
+the full API, module by module — `Http`, `Html`, `Extract`, `Spider`, `Session`, `Frontier`,
+and the rest.
+
 ---
 
 ## Project layout
@@ -127,37 +131,6 @@ CrawlSage/
 ├── samples/                  # runnable, self-contained crawlers
 └── docs/                     # documentation site
 ```
-
----
-
-## Roadmap
-
-| Phase | Theme | Output |
-| --- | --- | --- |
-| 0 | **Scaffold** ✅ | repo, CI, docs, core types |
-| 1 | **Downloader** ✅ | retry/back-off, throttling, timeouts |
-| 2 | **Parsing DSL** ✅ | CSS selector DSL over a forgiving HTML parser |
-| 3 | **Spider engine** ✅ | request queue, dedup, scheduler, pipelines |
-| 4 | **Dynamic data** ✅ | embedded-state / JSON extraction (no browser) |
-| 5 | **Data pipelines** ✅ | JSON / JSONL / CSV sinks + data frames |
-| 6 | **Crawl ops** ✅ | robots.txt, per-host rate limit, UA & proxy rotation |
-| 7 | **Cookbook** ✅ | runnable recipes in `samples/` |
-| 8 | **Packaging** ✅ | tag-driven NuGet release (pack · symbols · publish) |
-| 9 | **Hardening** ✅ | links/URL · binary · resumable frontier · stats · sessions · sitemap · JS adapter |
-
----
-
-## Releasing
-
-Releases are tag-driven. Add a `NUGET_API_KEY` repository secret
-(Settings → Secrets and variables → Actions), then push a version tag:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-The release workflow builds, tests, packs (with a symbols package), and publishes to NuGet.
 
 ---
 

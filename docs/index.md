@@ -8,6 +8,7 @@ title: CrawlSage
 **An F#-first web crawling & scraping framework for .NET.**
 
 [Getting started](getting-started.html){: .btn } &nbsp;
+[Guide](guide.html){: .btn } &nbsp;
 [Architecture](architecture.html){: .btn } &nbsp;
 [Cookbook](cookbook.html){: .btn } &nbsp;
 [GitHub](https://github.com/gnrkr789/CrawlSage){: .btn }
