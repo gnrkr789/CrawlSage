@@ -29,26 +29,30 @@ Two principles shape it:
 
 ## Features
 
-- **Resilient downloader** — retry with exponential back-off + jitter, per-request timeout,
-  and concurrency throttling, composed as wrappers around one shared `HttpClient`.
-- **Parsing DSL** — forgiving, `option`-returning CSS selectors (`parse` / `select` /
-  `selectAll` / `text` / `attr`) that pipe naturally.
-- **Spider engine** — a breadth-first scheduler with URL-fingerprint dedup, depth bounding,
-  and an item pipeline; a parser returns items and follow-up requests as a discriminated union.
-- **Dynamic data, no browser** — pull `__NEXT_DATA__`, JSON-LD, and object/array globals out
-  of the page, or replay the JSON API behind it.
-- **Crawl ops** — `robots.txt` parsing with a per-host cache, per-host rate limiting, and
-  honest User-Agent / proxy rotation.
-- **Output sinks** — stream items to JSON, JSON Lines, or CSV, or load them into data frames
-  for post-processing.
+- **Resilient downloader** — retry with back-off + jitter, per-request timeout, concurrency
+  throttling, and gzip/brotli decompression, composed as wrappers around one `HttpClient`.
+- **Parsing & links** — forgiving, `option`-returning CSS selectors, plus a link extractor and
+  URL canonicalisation for dedup and same-host filtering.
+- **Spider engine** — a frontier-driven scheduler with dedup, depth bounding, an item pipeline,
+  per-page fault tolerance, and a `CrawlEvent` hook for stats / logging.
+- **Resumable & bounded crawls** — swap the frontier for a disk-backed one (resume after a stop
+  or crash) or a memory-capped one, with zero engine changes.
+- **Dynamic data, no browser** — pull `__NEXT_DATA__`, JSON-LD and object/array globals out of
+  the page, or replay the JSON API; an opt-in `CrawlSage.Browser` (Playwright) adapter renders
+  the rest.
+- **Politeness & rotation** — `robots.txt` (per-host cache + `Crawl-delay`), per-host pacing,
+  honest User-Agent / proxy rotation, and `sitemap.xml` discovery.
+- **Sessions** — a cookie-jar session for form login, saved and restored across runs.
+- **Output** — JSON / JSON Lines / CSV / data-frame sinks for items, plus binary file downloads.
 
 ---
 
 ## Status
 
-🚧 **Early development.** Phases 0–8 are in place: resilient downloader, parsing DSL, spider
-engine, extraction, export, crawl ops, a runnable sample cookbook, and a tag-driven NuGet
-release workflow.
+🚧 **Early development.** The framework (phases 0–8) is in place — resilient downloader,
+parsing DSL, spider engine, extraction, export, crawl ops, a sample cookbook and a tag-driven
+NuGet release — plus a hardening pass: link extraction, binary downloads, resumable/bounded
+frontiers, crawl stats, sessions, sitemaps and an opt-in browser renderer.
 
 ---
 
@@ -104,17 +108,22 @@ are runnable under [`samples/`](samples), each polite by default.
 
 ```
 CrawlSage/
-├── src/CrawlSage/            # the framework library
-│   ├── Types.fs              #   Request / Response / HttpVerb
-│   ├── Http.fs               #   the downloader (shared HttpClient)
+├── src/CrawlSage/            # the framework library (browser-free core)
+│   ├── Types.fs              #   Request / Response / Renderer / Sink
+│   ├── Url.fs                #   resolve · canonicalise · same-host
+│   ├── Http.fs               #   the downloader (shared HttpClient, gzip, bytes/download)
 │   ├── Resilience.fs         #   retry · back-off · timeout · throttle
 │   ├── Rotation.fs           #   honest UA & proxy rotation
-│   ├── Html.fs               #   CSS selector DSL (parse / select / text / attr)
+│   ├── Session.fs            #   cookie-jar session (login, save/load)
+│   ├── Html.fs               #   CSS selector DSL + link extraction
 │   ├── Extract.fs            #   embedded-state / JSON extraction (no browser)
 │   ├── Robots.fs             #   robots.txt parse · per-host cache · per-host pacing
-│   ├── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline · robots)
-│   └── Export.fs             #   output sinks: JSON / JSONL / CSV + data frames
-├── tests/CrawlSage.Tests/    # xUnit test project
+│   ├── Sitemap.fs            #   sitemap.xml / sitemapindex discovery
+│   ├── Frontier.fs           #   in-memory · bounded · persistent (resumable) frontier
+│   ├── Spider.fs             #   crawl engine (frontier · dedup · depth · pipeline · stats)
+│   └── Export.fs             #   sinks: JSON / JSONL / CSV / data frames + saveBytes
+├── src/CrawlSage.Browser/    # opt-in JS renderer (Playwright) — not a core dependency
+├── tests/                    # xUnit test projects (core + browser)
 ├── samples/                  # runnable, self-contained crawlers
 └── docs/                     # documentation site
 ```
@@ -134,6 +143,7 @@ CrawlSage/
 | 6 | **Crawl ops** ✅ | robots.txt, per-host rate limit, UA & proxy rotation |
 | 7 | **Cookbook** ✅ | runnable recipes in `samples/` |
 | 8 | **Packaging** ✅ | tag-driven NuGet release (pack · symbols · publish) |
+| 9 | **Hardening** ✅ | links/URL · binary · resumable frontier · stats · sessions · sitemap · JS adapter |
 
 ---
 

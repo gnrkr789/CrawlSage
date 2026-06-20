@@ -11,23 +11,30 @@ CrawlSage is built in layers. Dependencies flow one way — lower layers never r
 higher ones — which keeps each piece testable in isolation.
 
 ```
-Types → Http → Resilience → Rotation → Html → Extract → Robots → Spider → Export
-domain  fetch   resilience   rotation   parse   extract  robots   engine   sinks
+Types → Url → Http → Resilience · Rotation · Session → Html · Extract → Robots · Sitemap → Frontier → Spider → Export
 ```
+
+The opt-in `CrawlSage.Browser` adapter (headless Chromium) plugs in as a `Renderer`, so the
+core never takes a browser dependency.
 
 ## Layers
 
 | Layer | File | Responsibility | Phase |
 | --- | --- | --- | --- |
-| **Domain** | `Types.fs` | `Request`, `Response`, `HttpVerb` — pure data, no I/O | 0 ✅ |
-| **Downloader** | `Http.fs` | fetch over `HttpClient` | 0 ✅ |
+| **Domain** | `Types.fs` | `Request`, `Response`, `Renderer`, `Sink` — pure data, no I/O | 0 ✅ |
+| **URLs** | `Url.fs` | resolve · canonicalise (dedup) · same-host | 9 ✅ |
+| **Downloader** | `Http.fs` | `fetch` / `fetchBytes` / `download` over `HttpClient` (gzip) | 0 ✅ |
 | **Resilience** | `Resilience.fs` | retry · back-off · timeout · throttle (Polly) | 1 ✅ |
 | **Rotation** | `Rotation.fs` | honest User-Agent & proxy rotation (round-robin) | 6 ✅ |
-| **Parsing** | `Html.fs` | AngleSharp-backed selector DSL (CSS) | 2 ✅ |
-| **Engine** | `Spider.fs` | BFS scheduler, dedup, depth bound, item pipeline, robots gate | 3 ✅ |
+| **Session** | `Session.fs` | cookie-jar session — login, save/load | 9 ✅ |
+| **Parsing** | `Html.fs` | AngleSharp selector DSL + link extraction | 2 ✅ |
 | **Extraction** | `Extract.fs` | embedded-state / JSON, no browser: `__NEXT_DATA__`, JSON-LD | 4a ✅ |
 | **Politeness** | `Robots.fs` | robots.txt parse · per-host cache · per-host pacing | 6 ✅ |
-| **Export** | `Export.fs` | JSON / JSONL / CSV sinks + Deedle frames | 5 ✅ |
+| **Discovery** | `Sitemap.fs` | `sitemap.xml` / `sitemapindex` URLs | 9 ✅ |
+| **Frontier** | `Frontier.fs` | in-memory · bounded · persistent (resumable) | 9 ✅ |
+| **Engine** | `Spider.fs` | frontier scheduler, dedup, depth, pipeline, robots gate, stats | 3 ✅ |
+| **Export** | `Export.fs` | JSON / JSONL / CSV sinks + Deedle frames + `saveBytes` | 5 ✅ |
+| **Browser** *(opt-in)* | `CrawlSage.Browser` | headless Chromium renderer (Playwright) | 9 ✅ |
 
 ## Design principles
 
