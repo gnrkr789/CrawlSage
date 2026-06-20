@@ -9,6 +9,8 @@
 ![Status](https://img.shields.io/badge/status-early%20development-orange)
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
 
+![CrawlSage — scrape a list and write a CSV in one command](docs/assets/demo.gif)
+
 ---
 
 ## What it is

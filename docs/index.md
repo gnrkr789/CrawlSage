@@ -12,6 +12,8 @@ title: CrawlSage
 [Cookbook](cookbook.html){: .btn } &nbsp;
 [GitHub](https://github.com/gnrkr789/CrawlSage){: .btn }
 
+![CrawlSage — scrape a list and write a CSV in one command](assets/demo.svg)
+
 ---
 
 ## Why CrawlSage?
