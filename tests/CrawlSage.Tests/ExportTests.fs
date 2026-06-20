@@ -65,3 +65,14 @@ let ``fanout sends each item to every sink`` () =
 let ``toFrame builds a frame with one row per record`` () =
     let frame = Export.toFrame rows
     Assert.Equal(2, frame.RowCount)
+
+[<Fact>]
+let ``saveBytes round-trips raw bytes`` () =
+    let path = tempPath ".bin"
+    let bytes = [| 0uy; 255uy; 13uy; 10uy; 42uy |]
+
+    try
+        Export.saveBytes path bytes
+        Assert.Equal<byte[]>(bytes, File.ReadAllBytes path)
+    finally
+        File.Delete path

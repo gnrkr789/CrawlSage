@@ -31,6 +31,10 @@ module Export =
         use csv = new CsvWriter(writer, CultureInfo.InvariantCulture)
         csv.WriteRecords(items)
 
+    /// Write raw bytes to a file (created or overwritten) — the binary counterpart to the
+    /// text sinks, for images, PDFs and other assets fetched with <c>Http.fetchBytes</c>.
+    let saveBytes (path: string) (bytes: byte[]) : unit = File.WriteAllBytes(path, bytes)
+
     /// Fan one item out to several sinks — use as a <c>Spider.Pipeline</c> so a single
     /// crawl writes to many destinations at once.
     let fanout (sinks: Sink<'T> list) : Sink<'T> =
