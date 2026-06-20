@@ -21,8 +21,11 @@ module Http =
         | Get -> HttpMethod.Get
         | Post -> HttpMethod.Post
 
-    /// Fetches <paramref name="request"/> asynchronously and decodes it into a <see cref="T:CrawlSage.Response"/>.
-    let fetch (request: Request) : Async<Response> =
+    /// Fetches <paramref name="request"/> over a specific <see cref="T:System.Net.Http.HttpClient"/>
+    /// and decodes it into a <see cref="T:CrawlSage.Response"/>. Use this to fetch over a
+    /// chosen egress — e.g. a proxied client from <c>Rotation</c> — without duplicating the
+    /// decode logic; <c>fetch</c> is just this over the shared client.
+    let fetchWith (client: HttpClient) (request: Request) : Async<Response> =
         async {
             use message = new HttpRequestMessage(toHttpMethod request.Method, request.Url)
 
@@ -48,6 +51,9 @@ module Http =
                   Body = body
                   Headers = headers }
         }
+
+    /// Fetches <paramref name="request"/> over the shared client (see <c>fetchWith</c>).
+    let fetch (request: Request) : Async<Response> = fetchWith client request
 
     /// Convenience: fetch a URL with a plain GET and return the body text.
     let getString (url: string) : Async<string> =

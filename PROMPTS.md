@@ -164,7 +164,15 @@ round-trip.
 
 ---
 
-## Phase 6 — Crawl ops & politeness
+## Phase 6 — Crawl ops & politeness ✅ (done)
+
+**Shipped:** `src/CrawlSage/Robots.fs` — robots.txt `parse` (User-agent groups, `Allow`/
+`Disallow` with longest-match + `*`/`$` wildcards, `Crawl-delay`), `isAllowed`/`crawlDelay`,
+a thread-safe per-host `Cache`, and `pacePerHost`/`perHostDelay`. `src/CrawlSage/Rotation.fs`
+— `cycle` (round-robin), `withRotatingUserAgent`, and `proxiedFetch` (per-proxy client pool,
+over the new `Http.fetchWith`). The engine gained `Politeness` + `Spider.crawlPolitely`
+(robots gate + per-host pacing); `Spider.crawl` is now polite by default. 20 hermetic tests.
+The original build prompt is kept below for reference.
 
 **Goal:** robots.txt, rotation, and the operational polish that keeps crawls alive.
 

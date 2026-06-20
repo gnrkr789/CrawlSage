@@ -98,9 +98,11 @@ CrawlSage/
 │   ├── Types.fs              #   Request / Response / HttpVerb
 │   ├── Http.fs               #   the downloader (HttpClient)
 │   ├── Resilience.fs         #   retry · back-off · timeout · throttle (Polly)
+│   ├── Rotation.fs           #   honest UA & proxy rotation (round-robin)
 │   ├── Html.fs               #   AngleSharp selector DSL (parse / select / text / attr)
 │   ├── Extract.fs            #   embedded-state / JSON extraction (__NEXT_DATA__, JSON-LD)
-│   ├── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline)
+│   ├── Robots.fs             #   robots.txt parse · per-host cache · per-host pacing
+│   ├── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline · robots)
 │   └── Export.fs             #   output sinks: JSON / JSONL / CSV + Deedle frames
 ├── tests/CrawlSage.Tests/    # xUnit test project
 ├── samples/                  # cookbook: runnable, self-contained crawlers
@@ -123,7 +125,7 @@ CrawlSage/
 | 3 | **Spider engine** ✅ | request queue, dedup, scheduler, pipelines |
 | 4 | **Dynamic data** ✅ | embedded-state / JSON extraction (no browser) |
 | 5 | **Data pipelines** ✅ | JSON / JSONL / CSV sinks + Deedle frames |
-| 6 | **Crawl ops** | proxy & UA rotation, rate limits, robots.txt |
+| 6 | **Crawl ops** ✅ | robots.txt, per-host rate limit, UA & proxy rotation |
 | 7 | **Cookbook** | real-world recipes in `samples/` |
 | 8 | **Packaging** | NuGet release, versioned docs |
 
@@ -140,7 +142,7 @@ The `.claude/skills/` directory contains task-specific skills:
 | --- | --- |
 | `new-spider` | scaffold a new crawler in `samples/` |
 | `parse-html` | extract data with the selector DSL |
-| `dynamic-page` | render JS / handle infinite scroll with Playwright |
+| `dynamic-page` | extract embedded state / JSON from JS-heavy pages — no browser |
 | `session-auth` | log in and keep cookies / sessions |
 | `data-export` | write scraped data to CSV / JSON / DB |
 | `crawl-ops` | add proxies, rate limits, retries, robots.txt |

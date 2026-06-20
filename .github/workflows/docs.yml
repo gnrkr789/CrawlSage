@@ -1,7 +1,10 @@
 name: Docs
 
 # Builds the Jekyll site in /docs and deploys it to GitHub Pages.
-# One-time setup: repo Settings → Pages → Build and deployment → Source = "GitHub Actions".
+# The Configure Pages step below provisions the Pages site itself (enablement: true), so no
+# manual setup is normally needed. If a run still reports "Get Pages site failed" (e.g. an
+# org policy blocks API enablement), switch it on once by hand:
+#   repo Settings → Pages → Build and deployment → Source = "GitHub Actions".
 
 on:
   push:
@@ -31,6 +34,10 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        # enablement: provision the Pages site from the workflow itself, so the first run
+        # doesn't fail with "Get Pages site failed" when Pages was never switched on by hand.
+        with:
+          enablement: true
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1

@@ -8,8 +8,10 @@
   <ItemGroup>
     <Compile Include="Tests.fs" />
     <Compile Include="ResilienceTests.fs" />
+    <Compile Include="RotationTests.fs" />
     <Compile Include="HtmlTests.fs" />
     <Compile Include="ExtractTests.fs" />
+    <Compile Include="RobotsTests.fs" />
     <Compile Include="SpiderTests.fs" />
     <Compile Include="ExportTests.fs" />
   </ItemGroup>

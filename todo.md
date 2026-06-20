@@ -18,7 +18,7 @@ dotnet test CrawlSage.slnx        # should be all green
 - **Pushing:** `gh` is not authenticated here, so push over SSH yourself —
   `git push` (the `origin` remote is already set). To use `gh` instead: `gh auth login` first.
 
-## Status — Phases 0–5 done ✅ (32 tests green)
+## Status — Phases 0–6 done ✅ (52 tests green)
 
 | Phase | What | File |
 | --- | --- | --- |
@@ -28,11 +28,10 @@ dotnet test CrawlSage.slnx        # should be all green
 | 3 | spider engine (BFS, dedup, depth, pipeline) | `src/CrawlSage/Spider.fs` |
 | 4a | dynamic data — embedded-state / JSON extraction, **no browser** | `src/CrawlSage/Extract.fs` |
 | 5 | output sinks: JSON / JSONL / CSV + Deedle | `src/CrawlSage/Export.fs` |
+| 6 | crawl ops — robots.txt + per-host pacing (engine-wired), UA & proxy rotation | `src/CrawlSage/Robots.fs`, `src/CrawlSage/Rotation.fs` |
 
 ## Next up — pick one (prompts in [PROMPTS.md](PROMPTS.md))
 
-- [ ] **Phase 6 — Crawl ops & politeness**: `robots.txt`, per-host rate limit, UA & proxy
-      rotation. Wire into the engine's scheduler. (`Robots.fs`, `Rotation.fs`)
 - [ ] **Phase 7 — Cookbook**: runnable samples under `samples/` (use the `new-spider` skill)
       — extract-a-list, follow-pagination, login+session, dynamic-data, export-to-csv.
 - [ ] **Phase 8 — Packaging**: NuGet pack + tag-triggered release workflow, versioned docs.

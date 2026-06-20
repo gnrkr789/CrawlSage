@@ -11,8 +11,8 @@ CrawlSage is built in layers. Dependencies flow one way — lower layers never r
 higher ones — which keeps each piece testable in isolation.
 
 ```
-Types → Http → Resilience → Html → Extract → Spider → Export
-domain  fetch   resilience   parse   extract  engine   sinks
+Types → Http → Resilience → Rotation → Html → Extract → Robots → Spider → Export
+domain  fetch   resilience   rotation   parse   extract  robots   engine   sinks
 ```
 
 ## Layers
@@ -22,9 +22,11 @@ domain  fetch   resilience   parse   extract  engine   sinks
 | **Domain** | `Types.fs` | `Request`, `Response`, `HttpVerb` — pure data, no I/O | 0 ✅ |
 | **Downloader** | `Http.fs` | fetch over `HttpClient` | 0 ✅ |
 | **Resilience** | `Resilience.fs` | retry · back-off · timeout · throttle (Polly) | 1 ✅ |
+| **Rotation** | `Rotation.fs` | honest User-Agent & proxy rotation (round-robin) | 6 ✅ |
 | **Parsing** | `Html.fs` | AngleSharp-backed selector DSL (CSS) | 2 ✅ |
-| **Engine** | `Spider.fs` | BFS scheduler, dedup, depth bound, item pipeline | 3 ✅ |
+| **Engine** | `Spider.fs` | BFS scheduler, dedup, depth bound, item pipeline, robots gate | 3 ✅ |
 | **Extraction** | `Extract.fs` | embedded-state / JSON, no browser: `__NEXT_DATA__`, JSON-LD | 4a ✅ |
+| **Politeness** | `Robots.fs` | robots.txt parse · per-host cache · per-host pacing | 6 ✅ |
 | **Export** | `Export.fs` | JSON / JSONL / CSV sinks + Deedle frames | 5 ✅ |
 
 ## Design principles

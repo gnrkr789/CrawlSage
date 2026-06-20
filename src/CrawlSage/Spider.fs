@@ -18,6 +18,23 @@ type SpiderOptions =
     /// 8-wide, 16 levels deep.
     static member Default = { MaxConcurrency = 8; MaxDepth = 16 }
 
+/// How a crawl paces itself and respects robots.txt — politeness, not evasion. Consulted
+/// by <c>Spider.crawlPolitely</c>, and so by the production <c>Spider.crawl</c>.
+type Politeness =
+    { /// Consult each host's robots.txt and skip disallowed URLs.
+      RespectRobots: bool
+      /// The crawler identity robots rules are matched against.
+      UserAgent: string
+      /// Minimum gap between requests to one host. A host's robots <c>Crawl-delay</c>
+      /// overrides this upward when the host asks for more.
+      PerHostDelay: TimeSpan }
+
+    /// Robots-respecting, at most one request per host per second.
+    static member Default =
+        { RespectRobots = true
+          UserAgent = "CrawlSage"
+          PerHostDelay = TimeSpan.FromSeconds 1.0 }
+
 /// A complete crawl: where to start, how to parse, where items go, and the limits.
 /// (No structural equality/comparison — it holds function-typed fields.)
 [<NoComparison; NoEquality>]
@@ -59,9 +76,10 @@ module Spider =
           Pipeline = pipeline
           Options = SpiderOptions.Default }
 
-    /// Run <paramref name="spider"/> with an explicit fetch function — inject a stub in
-    /// tests, or use <c>crawl</c> for the production downloader.
-    let crawlWith (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
+    /// The core breadth-first loop shared by every entry point. <paramref name="allow"/>
+    /// decides whether a request is fetched at all (the robots gate; disallowed URLs are
+    /// dropped before fetch *and* parse), and <paramref name="fetch"/> performs the download.
+    let private run (allow: Request -> Async<bool>) (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
         async {
             let seen = System.Collections.Generic.HashSet<string>()
             let maxDepth = spider.Options.MaxDepth
@@ -75,7 +93,14 @@ module Spider =
                     if List.isEmpty level then
                         return ()
                     else
-                        let! responses = Async.Parallel(level |> List.map fetch, maxConcurrency)
+                        // Robots gate: drop disallowed URLs before fetching (checked in parallel).
+                        let! flags = level |> List.map allow |> Async.Parallel
+
+                        let toFetch =
+                            List.zip level (List.ofArray flags)
+                            |> List.choose (fun (request, ok) -> if ok then Some request else None)
+
+                        let! responses = Async.Parallel(toFetch |> List.map fetch, maxConcurrency)
                         let nextLevel = ResizeArray<Request>()
 
                         for response in responses do
@@ -92,7 +117,47 @@ module Spider =
             do! loop seedLevel 0
         }
 
+    /// Always-allow gate — no robots check.
+    let private allowAll: Request -> Async<bool> = fun _ -> async { return true }
+
+    /// Run <paramref name="spider"/> with an explicit fetch function and no politeness gate
+    /// — inject a stub in tests, or compose your own middleware. Use <c>crawl</c> for the
+    /// polite production downloader.
+    let crawlWith (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
+        run allowAll fetch spider
+
+    /// Run <paramref name="spider"/> politely over <paramref name="fetch"/>: consult each
+    /// host's robots.txt (skipping disallowed URLs) and space out per-host requests,
+    /// honouring a host's robots <c>Crawl-delay</c> when it exceeds <c>PerHostDelay</c>.
+    /// robots.txt itself is fetched over <paramref name="fetch"/> but never paced or gated.
+    let crawlPolitely (politeness: Politeness) (fetch: Renderer) (spider: Spider<'Item>) : Async<unit> =
+        let cache = Robots.Cache(fetch, politeness.UserAgent)
+
+        let delayFor (request: Request) =
+            if politeness.RespectRobots then
+                async {
+                    let! crawlDelay = cache.CrawlDelay request.Url
+
+                    return
+                        match crawlDelay with
+                        | Some delay when delay > politeness.PerHostDelay -> delay
+                        | _ -> politeness.PerHostDelay
+                }
+            else
+                async { return politeness.PerHostDelay }
+
+        let paced = fetch |> Robots.pacePerHost delayFor
+
+        let allow (request: Request) =
+            if politeness.RespectRobots then
+                cache.IsAllowed request.Url
+            else
+                async { return true }
+
+        run allow paced spider
+
     /// Run <paramref name="spider"/> with the production downloader
-    /// (<c>Resilience.politeFetch</c>: throttled, retried, timed-out).
+    /// (<c>Resilience.politeFetch</c>: throttled, retried, timed-out), politely:
+    /// robots.txt-respecting with a per-host delay (<c>Politeness.Default</c>).
     let crawl (spider: Spider<'Item>) : Async<unit> =
-        crawlWith Resilience.politeFetch spider
+        crawlPolitely Politeness.Default Resilience.politeFetch spider

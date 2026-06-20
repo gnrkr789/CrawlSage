@@ -69,26 +69,42 @@ requests-per-second.
 
 ## robots.txt
 
-Before crawling a host, fetch `/robots.txt` and honour `Disallow` for your User-Agent.
-Cache it per host. Treat a missing/unreachable `robots.txt` as "allowed", a `Disallow:
-/` as "do not crawl". The `parse-html` skill is not needed — `robots.txt` is line-based.
+`Robots.fs` ships this. The format is line-based, so there's no HTML parsing — it groups
+rules by `User-agent` and honours `Allow` / `Disallow` (longest match wins, with `*`/`$`
+wildcards) and `Crawl-delay`. A missing or unreachable `robots.txt` is treated as
+"allowed"; `Disallow: /` means "stay out".
+
+```fsharp
+// Pure parse + check (hermetic — feed it canned text):
+let rules = Robots.parse "User-agent: *\nDisallow: /private"
+Robots.isAllowed "CrawlSage" "/private/x" rules   // false
+Robots.crawlDelay "CrawlSage" rules               // TimeSpan option
+
+// Per-host cache — fetches each host's robots.txt once, over any Renderer:
+let cache = Robots.Cache(Resilience.politeFetch, "CrawlSage")
+let ok = cache.IsAllowed "https://site/page" |> Async.RunSynchronously
+```
+
+You rarely call these directly — `Spider.crawlPolitely` (below) wires the cache into the
+engine so disallowed URLs are skipped before they're ever fetched.
 
 ## User-Agent & proxy rotation
 
+`Rotation.fs` ships honest, round-robin rotation — for *resilience and geo-distribution*,
+not for evading bans.
+
 ```fsharp
-let userAgents = [ "Mozilla/5.0 ..."; "Mozilla/5.0 ..." ]
+// Stamp a rotating, honest User-Agent on each request before it's fetched:
+let fetch =
+    Http.fetch
+    |> Rotation.withRotatingUserAgent [ "CrawlSage/0.1 (+contact)"; "CrawlSage/0.1 (alt)" ]
 
-/// Stamp a rotating, honest User-Agent on each request.
-let withRotatingUa (uas: string list) =
-    let mutable i = 0
-    fun (request: Request) ->
-        let ua = uas.[i % uas.Length]
-        i <- i + 1
-        request |> Request.withHeader "User-Agent" ua
+// One HttpClient per proxy, round-robined (egress resilience / geo-distribution):
+let viaProxies = Rotation.proxiedFetch [ "http://proxy-a:8080"; "http://proxy-b:8080" ]
+
+// The primitive both use — a thread-safe round-robin (also handy for proxy selection):
+let next = Rotation.cycle [ "a"; "b" ]   // unit -> 'a option
 ```
-
-For proxies, build `HttpClient` instances over `HttpClientHandler(Proxy = ...)` and
-round-robin them — useful for *resilience and geo-distribution*, not for evading bans.
 
 ## Composing the stack
 
@@ -100,6 +116,24 @@ let politeFetch =
     |> Resilience.withRetry
     |> throttle 4
 ```
+
+## Engine-level politeness
+
+`Spider.crawlPolitely` (and the default `Spider.crawl`) layer robots.txt + per-host pacing
+on top of any fetch — disallowed URLs are dropped before they're fetched, and one host is
+never hit faster than `PerHostDelay` (a host's `Crawl-delay` overrides it upward).
+
+```fsharp
+// Polite by default: robots-respecting, ≤ 1 request/host/second.
+spider |> Spider.crawl |> Async.RunSynchronously
+
+// Tune it — slower per host, or robots off for a site you own:
+let politeness = { Politeness.Default with PerHostDelay = TimeSpan.FromSeconds 3.0 }
+Spider.crawlPolitely politeness Resilience.politeFetch spider |> Async.RunSynchronously
+```
+
+Need pacing without the engine? `Robots.perHostDelay (TimeSpan.FromSeconds 1.0)` is a
+fetch wrapper you can drop into the stack above.
 
 ## Timeouts
 
