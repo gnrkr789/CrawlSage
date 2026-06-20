@@ -11,14 +11,17 @@ module Url =
     /// <c>"../x"</c>) against the page's <paramref name="baseUrl"/>. Absolute hrefs pass
     /// through; anything unparseable is returned unchanged.
     let resolve (baseUrl: string) (href: string) : string =
-        match Uri.TryCreate(href, UriKind.Absolute) with
-        | true, abs -> abs.AbsoluteUri
+        match Uri.TryCreate(baseUrl, UriKind.Absolute) with
+        | true, b ->
+            // Resolve against the base: this handles an absolute href (which replaces the
+            // base) and a relative one alike — and, crucially, avoids the cross-platform trap
+            // where Uri.TryCreate("/path", Absolute) is parsed as a file:// URI on Unix.
+            match Uri.TryCreate(b, href) with
+            | true, resolved -> resolved.AbsoluteUri
+            | _ -> href
         | _ ->
-            match Uri.TryCreate(baseUrl, UriKind.Absolute) with
-            | true, b ->
-                match Uri.TryCreate(b, href) with
-                | true, resolved -> resolved.AbsoluteUri
-                | _ -> href
+            match Uri.TryCreate(href, UriKind.Absolute) with
+            | true, abs -> abs.AbsoluteUri
             | _ -> href
 
     /// The lower-cased host of <paramref name="url"/>, or <c>""</c> if it is not absolute.
