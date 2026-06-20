@@ -14,6 +14,7 @@
     <Compile Include="HtmlTests.fs" />
     <Compile Include="ExtractTests.fs" />
     <Compile Include="RobotsTests.fs" />
+    <Compile Include="SitemapTests.fs" />
     <Compile Include="FrontierTests.fs" />
     <Compile Include="SpiderTests.fs" />
     <Compile Include="ExportTests.fs" />
