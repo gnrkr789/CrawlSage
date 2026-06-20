@@ -18,7 +18,7 @@ dotnet test CrawlSage.slnx        # should be all green
 - **Pushing:** `gh` is not authenticated here, so push over SSH yourself —
   `git push` (the `origin` remote is already set). To use `gh` instead: `gh auth login` first.
 
-## Status — Phases 0–6 done ✅ (52 tests green)
+## Status — Phases 0–7 done ✅ (52 tests green)
 
 | Phase | What | File |
 | --- | --- | --- |
@@ -29,12 +29,12 @@ dotnet test CrawlSage.slnx        # should be all green
 | 4a | dynamic data — embedded-state / JSON extraction, **no browser** | `src/CrawlSage/Extract.fs` |
 | 5 | output sinks: JSON / JSONL / CSV + Deedle | `src/CrawlSage/Export.fs` |
 | 6 | crawl ops — robots.txt + per-host pacing (engine-wired), UA & proxy rotation | `src/CrawlSage/Robots.fs`, `src/CrawlSage/Rotation.fs` |
+| 7 | cookbook — 3 runnable samples vs. quotes.toscrape.com | `samples/QuotesToCsv`, `samples/QuotesCrawl`, `samples/PoliteRotation` |
 
 ## Next up — pick one (prompts in [PROMPTS.md](PROMPTS.md))
 
-- [ ] **Phase 7 — Cookbook**: runnable samples under `samples/` (use the `new-spider` skill)
-      — extract-a-list, follow-pagination, login+session, dynamic-data, export-to-csv.
 - [ ] **Phase 8 — Packaging**: NuGet pack + tag-triggered release workflow, versioned docs.
+- [ ] **Phase 7 (more recipes)**: login+session (`session-auth`), infinite-scroll (`dynamic-page`).
 - [ ] **Phase 4b (optional)** — in-process JS renderer via Jint (managed, no browser binary).
       Only if extraction + API replay (Phase 4a) don't cover a target. Best-effort.
 

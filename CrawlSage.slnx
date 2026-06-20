@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/PoliteRotation/CrawlSage.Samples.PoliteRotation.fsproj" />
+    <Project Path="samples/QuotesCrawl/CrawlSage.Samples.QuotesCrawl.fsproj" />
+    <Project Path="samples/QuotesToCsv/CrawlSage.Samples.QuotesToCsv.fsproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/CrawlSage/CrawlSage.fsproj" />
   </Folder>

@@ -17,5 +17,13 @@ To add one, use the **`new-spider`** skill (or copy an existing folder). Every s
 - writes any output under `data/` (git-ignored),
 - ships a short `README.md` saying what it demonstrates.
 
-> Nothing here yet — Phase 0 just laid the groundwork. The first recipe arrives with
-> the parsing DSL (Phase 2).
+## Recipes
+
+All three crawl [quotes.toscrape.com](https://quotes.toscrape.com), a site built for
+scraping practice.
+
+| Sample | Recipe | Demonstrates |
+| --- | --- | --- |
+| [`QuotesToCsv`](QuotesToCsv) | extract a list → CSV | `Html` selectors + `Export.toCsv` |
+| [`QuotesCrawl`](QuotesCrawl) | follow pagination → polite crawl → JSONL | `Spider.crawl` (robots + per-host pacing) + `Export.appendJsonLine` |
+| [`PoliteRotation`](PoliteRotation) | UA rotation → crawl-ops | `Rotation.withRotatingUserAgent` + `Spider.crawlPolitely` |

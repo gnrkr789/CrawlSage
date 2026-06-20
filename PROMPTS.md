@@ -194,7 +194,15 @@ rotates UA — all tested.
 
 ---
 
-## Phase 7 — Cookbook
+## Phase 7 — Cookbook ✅ (core recipes done)
+
+**Shipped:** three self-contained, runnable crawlers under `samples/`, each against
+quotes.toscrape.com, polite by default, writing under `data/`, added to `CrawlSage.slnx`:
+`QuotesToCsv` (extract-a-list → CSV), `QuotesCrawl` (follow-pagination → polite crawl →
+JSONL, via `Spider.crawl`), and `PoliteRotation` (UA rotation → `Spider.crawlPolitely`).
+Indexed in `docs/cookbook.md` and `samples/README.md`. **Remaining recipes** (future
+additions, same pattern): login+session (`session-auth`) and infinite-scroll
+(`dynamic-page`). The original build prompt is kept below for reference.
 
 **Goal:** the real-world examples F# is missing. Each is a runnable sample.
 

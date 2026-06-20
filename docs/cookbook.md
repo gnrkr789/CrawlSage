@@ -21,8 +21,25 @@ phase is built. This page is the index of what's planned.
 | **Dynamic data, no browser** | `__NEXT_DATA__` / JSON-LD / API replay via `Extract` | 4a ✅ |
 | **Heavy SPA (opt-in)** | in-process JS / external-browser adapter — last resort | 4b+ |
 | **Export to CSV/JSON** | piping scraped items to a file sink | 5 ✅ |
-| **Polite crawl** | `robots.txt`, rate limit, retry/back-off | 6 |
-| **Proxy & UA rotation** | resilient fetching behind rotating egress | 6 |
+| **Polite crawl** | `robots.txt`, rate limit, retry/back-off | 6 ✅ |
+| **Proxy & UA rotation** | resilient fetching behind rotating egress | 6 ✅ |
+
+## Runnable samples
+
+Built in Phase 7 and living under
+[`samples/`](https://github.com/gnrkr789/CrawlSage/tree/main/samples) — each is a
+self-contained console crawler against
+[quotes.toscrape.com](https://quotes.toscrape.com), polite by default, writing output under
+`data/`:
+
+| Sample | Recipe | Run |
+| --- | --- | --- |
+| [`QuotesToCsv`](https://github.com/gnrkr789/CrawlSage/tree/main/samples/QuotesToCsv) | extract a list → CSV | `dotnet run --project samples/QuotesToCsv` |
+| [`QuotesCrawl`](https://github.com/gnrkr789/CrawlSage/tree/main/samples/QuotesCrawl) | follow pagination → polite crawl → JSONL | `dotnet run --project samples/QuotesCrawl` |
+| [`PoliteRotation`](https://github.com/gnrkr789/CrawlSage/tree/main/samples/PoliteRotation) | User-Agent rotation → crawl-ops | `dotnet run --project samples/PoliteRotation` |
+
+Still planned: **login + keep session** and **infinite scroll** (the `session-auth` and
+`dynamic-page` recipes).
 
 ## Hello, fetch (available today)
 

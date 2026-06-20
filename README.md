@@ -126,7 +126,7 @@ CrawlSage/
 | 4 | **Dynamic data** ✅ | embedded-state / JSON extraction (no browser) |
 | 5 | **Data pipelines** ✅ | JSON / JSONL / CSV sinks + Deedle frames |
 | 6 | **Crawl ops** ✅ | robots.txt, per-host rate limit, UA & proxy rotation |
-| 7 | **Cookbook** | real-world recipes in `samples/` |
+| 7 | **Cookbook** ✅ | runnable recipes in `samples/` (list, pagination, rotation) |
 | 8 | **Packaging** | NuGet release, versioned docs |
 
 Full prompts for each phase live in **[PROMPTS.md](PROMPTS.md)**.
