@@ -50,6 +50,10 @@ ms-playwright/
 .env
 *.crawl.log
 
+# ---- Local-only dev notes (kept on disk, not published) ----
+/PROMPTS.md
+/todo.md
+
 # ---- Docs site build (Jekyll) ----
 docs/_site/
 docs/.jekyll-cache/

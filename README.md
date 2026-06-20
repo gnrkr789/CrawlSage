@@ -1,7 +1,6 @@
 # CrawlSage
 
-> **An F#-first web crawling & scraping framework for .NET.**
-> Scrapy-grade ergonomics, BeautifulSoup-grade convenience — with the type safety of F#.
+> An F#-first web crawling & scraping framework for .NET.
 
 [![CI](https://github.com/gnrkr789/CrawlSage/actions/workflows/ci.yml/badge.svg)](https://github.com/gnrkr789/CrawlSage/actions/workflows/ci.yml)
 [![Docs](https://github.com/gnrkr789/CrawlSage/actions/workflows/docs.yml/badge.svg)](https://gnrkr789.github.io/CrawlSage/)
@@ -11,58 +10,42 @@
 
 ---
 
-## Why CrawlSage? (왜 F#인가)
+## What it is
 
-F# *can* crawl the web today — `HttpClient`, `AngleSharp`, `HtmlAgilityPack` and
-`Playwright for .NET` are all excellent. But compared to Python's ecosystem
-(BeautifulSoup, Scrapy, Requests, Selenium, Playwright) the F# story has real gaps:
+CrawlSage is a web crawling and scraping framework designed around F# idioms — records and
+discriminated unions for data, `option` over null, and `|>` pipelines for behaviour. It pairs
+a full crawl engine (request queue, dedup, scheduler, item pipelines) with a resilient
+downloader, a concise HTML selector DSL, and first-class politeness.
 
-| Gap in F# crawling | What CrawlSage provides |
-| --- | --- |
-| **No dedicated framework** — you assemble .NET libraries by hand | A Scrapy-style engine: request queue, dedup, pipelines, middleware, retry, throttling |
-| **Few real-world examples** — login, cookies, infinite scroll, dynamic rendering | A curated **cookbook** of runnable F# recipes for exactly these cases |
-| **Verbose HTML parsing** vs BeautifulSoup's forgiving API | A concise, F#-idiomatic selector DSL over AngleSharp |
-| **Dynamic pages** need a browser, sparse F# samples | Extract the embedded state / JSON the page already ships — no browser |
-| **Weaker data post-processing** than pandas | Export pipelines to CSV / JSON / Parquet / DB, Deedle-friendly |
-| **Thin operational know-how** — proxy rotation, rate limits, robots.txt | Built-in middleware for proxies, UA rotation, back-off, `robots.txt` |
+Two principles shape it:
 
-**The gap, in one screenful** — Python gets you from request to parsed data in 5 lines:
+- **Don't render — extract.** Most "dynamic" pages ship their data as embedded JSON.
+  CrawlSage lifts that state directly, so the core needs no browser.
+- **Polite by default.** `robots.txt`, per-host pacing, retries and back-off are built into
+  the engine, not bolted on.
 
-```python
-import requests
-from bs4 import BeautifulSoup
-html = requests.get("https://example.com").text
-soup = BeautifulSoup(html, "html.parser")
-titles = [t.text.strip() for t in soup.select("h2")]
-```
+## Features
 
-CrawlSage's goal is to make the F# equivalent just as short — and then give you the
-queue, retries, throttling and pipelines that Python's Scrapy adds on top:
-
-```fsharp
-open CrawlSage
-
-// Works today: fetch + decode.
-let html = Http.getString "https://example.com" |> Async.RunSynchronously
-
-// Roadmap (Phase 2+): the concise parsing DSL.
-//   let titles =
-//       html |> Html.parse |> Html.select "h2" |> List.map Html.text
-```
-
-> CrawlSage is to F# what [DotnetSpider](https://github.com/dotnetcore/DotnetSpider)
-> is to C# — but designed around F# idioms (records, discriminated unions, pipelines,
-> computation expressions) instead of attributes and inheritance.
+- **Resilient downloader** — retry with exponential back-off + jitter, per-request timeout,
+  and concurrency throttling, composed as wrappers around one shared `HttpClient`.
+- **Parsing DSL** — forgiving, `option`-returning CSS selectors (`parse` / `select` /
+  `selectAll` / `text` / `attr`) that pipe naturally.
+- **Spider engine** — a breadth-first scheduler with URL-fingerprint dedup, depth bounding,
+  and an item pipeline; a parser returns items and follow-up requests as a discriminated union.
+- **Dynamic data, no browser** — pull `__NEXT_DATA__`, JSON-LD, and object/array globals out
+  of the page, or replay the JSON API behind it.
+- **Crawl ops** — `robots.txt` parsing with a per-host cache, per-host rate limiting, and
+  honest User-Agent / proxy rotation.
+- **Output sinks** — stream items to JSON, JSON Lines, or CSV, or load them into data frames
+  for post-processing.
 
 ---
 
 ## Status
 
-🚧 **Early development.** The repository ships a buildable core (`Request`, `Response`,
-`Http.fetch`) plus full project tooling. The framework engine, parsing DSL, dynamic
-renderer and cookbook are built out phase by phase — see
-**[PROMPTS.md](PROMPTS.md)** for the step-by-step roadmap (each phase is a ready-to-run
-prompt for Claude Code).
+🚧 **Early development.** A buildable core is in place and the framework grows phase by phase.
+Phases 0–7 are done: resilient downloader, parsing DSL, spider engine, extraction, export,
+crawl ops, and a runnable sample cookbook. Packaging is next.
 
 ---
 
@@ -74,7 +57,7 @@ dotnet build CrawlSage.slnx
 dotnet test  CrawlSage.slnx
 ```
 
-Use the library:
+A minimal fetch:
 
 ```fsharp
 open CrawlSage
@@ -88,6 +71,22 @@ let body =
 printfn "%d — %d bytes" body.StatusCode body.Body.Length
 ```
 
+Pull a list of fields with the selector DSL:
+
+```fsharp
+open CrawlSage
+
+let authors =
+    Http.getString "https://quotes.toscrape.com/"
+    |> Async.RunSynchronously
+    |> Html.parse
+    |> Html.selectAll ".quote .author"
+    |> List.map Html.text
+```
+
+Full crawlers — extract a list, follow pagination, lift embedded JSON, rotate User-Agents —
+are runnable under [`samples/`](samples), each polite by default.
+
 ---
 
 ## Project layout
@@ -96,21 +95,17 @@ printfn "%d — %d bytes" body.StatusCode body.Body.Length
 CrawlSage/
 ├── src/CrawlSage/            # the framework library
 │   ├── Types.fs              #   Request / Response / HttpVerb
-│   ├── Http.fs               #   the downloader (HttpClient)
-│   ├── Resilience.fs         #   retry · back-off · timeout · throttle (Polly)
-│   ├── Rotation.fs           #   honest UA & proxy rotation (round-robin)
-│   ├── Html.fs               #   AngleSharp selector DSL (parse / select / text / attr)
-│   ├── Extract.fs            #   embedded-state / JSON extraction (__NEXT_DATA__, JSON-LD)
+│   ├── Http.fs               #   the downloader (shared HttpClient)
+│   ├── Resilience.fs         #   retry · back-off · timeout · throttle
+│   ├── Rotation.fs           #   honest UA & proxy rotation
+│   ├── Html.fs               #   CSS selector DSL (parse / select / text / attr)
+│   ├── Extract.fs            #   embedded-state / JSON extraction (no browser)
 │   ├── Robots.fs             #   robots.txt parse · per-host cache · per-host pacing
 │   ├── Spider.fs             #   BFS crawl engine (queue · dedup · depth · pipeline · robots)
-│   └── Export.fs             #   output sinks: JSON / JSONL / CSV + Deedle frames
+│   └── Export.fs             #   output sinks: JSON / JSONL / CSV + data frames
 ├── tests/CrawlSage.Tests/    # xUnit test project
-├── samples/                  # cookbook: runnable, self-contained crawlers
-├── docs/                     # GitHub Pages site (Jekyll)
-├── .claude/skills/           # Claude Code skills for building & using CrawlSage
-├── .github/workflows/        # CI + docs deploy
-├── PROMPTS.md                # step-by-step build prompts (the roadmap)
-└── CLAUDE.md                 # guidance for Claude Code in this repo
+├── samples/                  # runnable, self-contained crawlers
+└── docs/                     # documentation site
 ```
 
 ---
@@ -119,41 +114,21 @@ CrawlSage/
 
 | Phase | Theme | Output |
 | --- | --- | --- |
-| 0 | **Scaffold** ✅ | repo, CI, docs, skills, core types |
-| 1 | **Downloader** ✅ | retry/back-off, throttling, timeouts (Polly) |
-| 2 | **Parsing DSL** ✅ | AngleSharp wrapper, CSS selectors |
+| 0 | **Scaffold** ✅ | repo, CI, docs, core types |
+| 1 | **Downloader** ✅ | retry/back-off, throttling, timeouts |
+| 2 | **Parsing DSL** ✅ | CSS selector DSL over a forgiving HTML parser |
 | 3 | **Spider engine** ✅ | request queue, dedup, scheduler, pipelines |
 | 4 | **Dynamic data** ✅ | embedded-state / JSON extraction (no browser) |
-| 5 | **Data pipelines** ✅ | JSON / JSONL / CSV sinks + Deedle frames |
+| 5 | **Data pipelines** ✅ | JSON / JSONL / CSV sinks + data frames |
 | 6 | **Crawl ops** ✅ | robots.txt, per-host rate limit, UA & proxy rotation |
-| 7 | **Cookbook** ✅ | runnable recipes in `samples/` (list, pagination, rotation) |
+| 7 | **Cookbook** ✅ | runnable recipes in `samples/` |
 | 8 | **Packaging** | NuGet release, versioned docs |
-
-Full prompts for each phase live in **[PROMPTS.md](PROMPTS.md)**.
-
----
-
-## Building with Claude Code
-
-This repo is set up to be built *with* [Claude Code](https://claude.com/claude-code).
-The `.claude/skills/` directory contains task-specific skills:
-
-| Skill | Use it when you… |
-| --- | --- |
-| `new-spider` | scaffold a new crawler in `samples/` |
-| `parse-html` | extract data with the selector DSL |
-| `dynamic-page` | extract embedded state / JSON from JS-heavy pages — no browser |
-| `session-auth` | log in and keep cookies / sessions |
-| `data-export` | write scraped data to CSV / JSON / DB |
-| `crawl-ops` | add proxies, rate limits, retries, robots.txt |
-
-Open the repo in Claude Code and type `/` to discover them, or follow `PROMPTS.md`.
 
 ---
 
 ## License
 
-[MIT](LICENSE) © 2026 Jun Tae Kim.
+[MIT](LICENSE).
 
-**Please crawl responsibly.** Respect `robots.txt`, rate limits, a site's Terms of
-Service and applicable law. CrawlSage is a tool; how you use it is your responsibility.
+**Please crawl responsibly.** Respect `robots.txt`, rate limits, a site's Terms of Service,
+and applicable law. CrawlSage is a tool; how you use it is your responsibility.

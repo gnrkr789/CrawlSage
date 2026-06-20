@@ -141,7 +141,5 @@ Already hold everything in memory? `Export.toJson` / `toCsv` write a batch, and
 
 ## What's next
 
-The parsing DSL, spider engine, dynamic renderer and data pipelines are built
-phase by phase. Follow the
-[step-by-step prompts](https://github.com/gnrkr789/CrawlSage/blob/main/PROMPTS.md)
-to grow the framework — or read the [architecture](architecture.html) first.
+Read the [architecture](architecture.html) for how the layers fit together, or browse the
+[cookbook](cookbook.html) for runnable recipes.

@@ -85,6 +85,4 @@ let title =
     |> Option.bind Extract.asString
 ```
 
-> Recipes graduate from "target API" to "available today" as each phase ships.
-> Track progress in
-> [PROMPTS.md](https://github.com/gnrkr789/CrawlSage/blob/main/PROMPTS.md).
+> Recipes graduate from "planned" to "available" as each phase ships.

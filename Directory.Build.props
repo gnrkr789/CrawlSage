@@ -3,9 +3,9 @@
   <!-- Shared metadata + compiler settings for every project in the solution. -->
   <PropertyGroup>
     <Product>CrawlSage</Product>
-    <Authors>Jun Tae Kim</Authors>
+    <Authors>gnrkr789</Authors>
     <Company>CrawlSage</Company>
-    <Copyright>Copyright (c) 2026 Jun Tae Kim</Copyright>
+    <Copyright>Copyright (c) 2026 gnrkr789</Copyright>
     <Version>0.1.0</Version>
 
     <!-- An F#-first web crawling and scraping framework for .NET. -->

@@ -31,9 +31,7 @@ pipelines and computation expressions instead of attributes and inheritance.
 ## Status
 
 🚧 **Early development.** A buildable core ships today (`Request`, `Response`,
-`Http.fetch`); the engine, parsing DSL, dynamic renderer and cookbook are built out
-phase by phase. See the
-[roadmap & build prompts](https://github.com/gnrkr789/CrawlSage/blob/main/PROMPTS.md).
+`Http.fetch`); the engine, parsing DSL, extraction and cookbook are built out phase by phase.
 
 ## A taste
 

@@ -1,8 +1,7 @@
 # Samples — the CrawlSage cookbook
 
-Runnable, self-contained crawlers — the real-world F# examples that are scarce
-elsewhere. Each lands here as the matching phase is built (see
-[`PROMPTS.md`](../PROMPTS.md) Phase 7 and [`docs/cookbook.md`](../docs/cookbook.md)).
+Runnable, self-contained crawlers — real-world F# examples, one per recipe in
+[`docs/cookbook.md`](../docs/cookbook.md).
 
 Each sample is its own console project:
 

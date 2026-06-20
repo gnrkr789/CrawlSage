@@ -4,9 +4,8 @@ open System.Net.Http
 
 /// Minimal, F#-idiomatic HTTP fetching built on <see cref="T:System.Net.Http.HttpClient"/>.
 ///
-/// This is the seed of CrawlSage's downloader layer. Retry/back-off, throttling,
-/// proxy rotation and a Playwright-backed renderer arrive in later phases
-/// (see <c>PROMPTS.md</c>).
+/// This is the seed of CrawlSage's downloader layer; retry/back-off, throttling and
+/// rotation are composed around it (see <c>Resilience</c> and <c>Rotation</c>).
 module Http =
 
     /// A single shared client. <c>HttpClient</c> is thread-safe and meant to be reused;
