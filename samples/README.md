@@ -26,4 +26,5 @@ scraping practice.
 | --- | --- | --- |
 | [`QuotesToCsv`](QuotesToCsv) | extract a list → CSV | `Html` selectors + `Export.toCsv` |
 | [`QuotesCrawl`](QuotesCrawl) | follow pagination → polite crawl → JSONL | `Spider.crawl` (robots + per-host pacing) + `Export.appendJsonLine` |
+| [`QuotesJs`](QuotesJs) | dynamic data, no browser | `Extract.assignedJson` lifts an embedded `var data = […]` array |
 | [`PoliteRotation`](PoliteRotation) | UA rotation → crawl-ops | `Rotation.withRotatingUserAgent` + `Spider.crawlPolitely` |

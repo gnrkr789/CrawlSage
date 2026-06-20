@@ -36,6 +36,7 @@ self-contained console crawler against
 | --- | --- | --- |
 | [`QuotesToCsv`](https://github.com/gnrkr789/CrawlSage/tree/main/samples/QuotesToCsv) | extract a list → CSV | `dotnet run --project samples/QuotesToCsv` |
 | [`QuotesCrawl`](https://github.com/gnrkr789/CrawlSage/tree/main/samples/QuotesCrawl) | follow pagination → polite crawl → JSONL | `dotnet run --project samples/QuotesCrawl` |
+| [`QuotesJs`](https://github.com/gnrkr789/CrawlSage/tree/main/samples/QuotesJs) | dynamic data, no browser (embedded `var data = […]`) | `dotnet run --project samples/QuotesJs` |
 | [`PoliteRotation`](https://github.com/gnrkr789/CrawlSage/tree/main/samples/PoliteRotation) | User-Agent rotation → crawl-ops | `dotnet run --project samples/PoliteRotation` |
 
 Still planned: **login + keep session** and **infinite scroll** (the `session-auth` and

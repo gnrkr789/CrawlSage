@@ -2,6 +2,7 @@
   <Folder Name="/samples/">
     <Project Path="samples/PoliteRotation/CrawlSage.Samples.PoliteRotation.fsproj" />
     <Project Path="samples/QuotesCrawl/CrawlSage.Samples.QuotesCrawl.fsproj" />
+    <Project Path="samples/QuotesJs/CrawlSage.Samples.QuotesJs.fsproj" />
     <Project Path="samples/QuotesToCsv/CrawlSage.Samples.QuotesToCsv.fsproj" />
   </Folder>
   <Folder Name="/src/">

@@ -34,9 +34,12 @@ module Extract =
         |> Html.selectAll "script[type='application/ld+json']"
         |> List.choose (Html.text >> json)
 
-    /// Slice a balanced <c>{…}</c> beginning at <paramref name="start"/>, skipping string
-    /// literals, so an object literal can be lifted out of a <c>&lt;script&gt;</c> body.
-    let private sliceObject (s: string) (start: int) : string option =
+    /// Slice a balanced bracketed literal — an object <c>{…}</c> or array <c>[…]</c> —
+    /// beginning at <paramref name="start"/>, skipping string literals so braces/brackets
+    /// inside strings don't count. Lets an object *or* array literal be lifted out of a
+    /// <c>&lt;script&gt;</c> body. Both bracket kinds share one nesting counter, which is
+    /// correct for the well-formed JSON these globals carry.
+    let private sliceBalanced (s: string) (start: int) : string option =
         let mutable depth = 0
         let mutable i = start
         let mutable inString = false
@@ -57,8 +60,10 @@ module Extract =
                 | '\'' ->
                     inString <- true
                     quote <- c
-                | '{' -> depth <- depth + 1
-                | '}' ->
+                | '{'
+                | '[' -> depth <- depth + 1
+                | '}'
+                | ']' ->
                     depth <- depth - 1
 
                     if depth = 0 then
@@ -69,9 +74,10 @@ module Extract =
 
         result
 
-    /// Lift the JSON object assigned to a global, e.g. <c>window.__NUXT__ = {…}</c> or
-    /// <c>__INITIAL_STATE__ = {…}</c>, from any <c>&lt;script&gt;</c> on the page.
-    /// Best-effort: it takes the first balanced <c>{…}</c> after the name and parses it.
+    /// Lift the JSON value assigned to a global — an object <c>window.__NUXT__ = {…}</c> /
+    /// <c>__INITIAL_STATE__ = {…}</c> or an array <c>var data = […]</c> — from any
+    /// <c>&lt;script&gt;</c> on the page. Best-effort: it takes the first balanced
+    /// <c>{…}</c>/<c>[…]</c> after the name and parses it.
     let assignedJson (name: string) (doc: IDocument) : JsonNode option =
         doc
         |> Html.selectAll "script"
@@ -82,8 +88,17 @@ module Extract =
             if nameAt < 0 then
                 None
             else
+                // The first object- or array-opening bracket after the name, whichever comes first.
                 let braceAt = body.IndexOf('{', nameAt)
-                if braceAt < 0 then None else sliceObject body braceAt |> Option.bind json)
+                let bracketAt = body.IndexOf('[', nameAt)
+
+                let openAt =
+                    match braceAt, bracketAt with
+                    | -1, b -> b
+                    | a, -1 -> a
+                    | a, b -> min a b
+
+                if openAt < 0 then None else sliceBalanced body openAt |> Option.bind json)
 
     /// Navigate to an object property, if this node is an object that has it.
     let prop (name: string) (node: JsonNode) : JsonNode option =

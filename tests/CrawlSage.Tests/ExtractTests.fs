@@ -47,6 +47,31 @@ let ``assignedJson lifts window.__NUXT__ and navigates the array`` () =
     Assert.Equal<string list>([ "A"; "B" ], names)
 
 [<Fact>]
+let ``assignedJson lifts an array-assigned global and stops at its close`` () =
+    // Mirrors quotes.toscrape.com/js: `var data = [ {...}, {...} ];` then more script.
+    let html =
+        """
+        <html><body>
+          <script>
+            var data = [
+              {"author": "Albert Einstein", "text": "A"},
+              {"author": "J.K. Rowling", "text": "B"}
+            ];
+            for (var i in data) { document.write(data[i].text); }
+          </script>
+        </body></html>
+        """
+
+    let authors =
+        Html.parse html
+        |> Extract.assignedJson "data"
+        |> Option.map Extract.asList
+        |> Option.defaultValue []
+        |> List.choose (Extract.prop "author" >> Option.bind Extract.asString)
+
+    Assert.Equal<string list>([ "Albert Einstein"; "J.K. Rowling" ], authors)
+
+[<Fact>]
 let ``json returns None on malformed input`` () =
     Assert.True((Extract.json "{ not json").IsNone)
 

@@ -18,7 +18,7 @@ dotnet test CrawlSage.slnx        # should be all green
 - **Pushing:** `gh` is not authenticated here, so push over SSH yourself —
   `git push` (the `origin` remote is already set). To use `gh` instead: `gh auth login` first.
 
-## Status — Phases 0–7 done ✅ (52 tests green)
+## Status — Phases 0–7 done ✅ (53 tests green)
 
 | Phase | What | File |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ dotnet test CrawlSage.slnx        # should be all green
 | 4a | dynamic data — embedded-state / JSON extraction, **no browser** | `src/CrawlSage/Extract.fs` |
 | 5 | output sinks: JSON / JSONL / CSV + Deedle | `src/CrawlSage/Export.fs` |
 | 6 | crawl ops — robots.txt + per-host pacing (engine-wired), UA & proxy rotation | `src/CrawlSage/Robots.fs`, `src/CrawlSage/Rotation.fs` |
-| 7 | cookbook — 3 runnable samples vs. quotes.toscrape.com | `samples/QuotesToCsv`, `samples/QuotesCrawl`, `samples/PoliteRotation` |
+| 7 | cookbook — 4 runnable samples vs. quotes.toscrape.com | `samples/QuotesToCsv`, `samples/QuotesCrawl`, `samples/QuotesJs`, `samples/PoliteRotation` |
 
 ## Next up — pick one (prompts in [PROMPTS.md](PROMPTS.md))
 

@@ -34,7 +34,7 @@ A renderer is just `Renderer = Request -> Async<Response>`, so every rung plugs 
 | Function | Gets |
 | --- | --- |
 | `nextData doc` | `<script id="__NEXT_DATA__">` JSON (Next.js) |
-| `assignedJson "__NUXT__" doc` | `window.__NUXT__ = {…}` / any `name = {…}` global |
+| `assignedJson "data" doc` | a global assigned an **object or array** — `window.__NUXT__ = {…}`, `__INITIAL_STATE__ = {…}`, `var data = […]` |
 | `jsonLd doc` | all `application/ld+json` blocks |
 | `scriptJson selector doc` | JSON inside any `<script>` you select |
 | `json raw` | parse a raw string → `JsonNode option` |
@@ -55,6 +55,21 @@ let title =
 ```
 
 Use it inside a `Spider` parser exactly like the HTML path — `Extract` and `Html` compose.
+
+When a page builds its list from an array assigned to a global — `var data = [ {…}, {…} ]`,
+common on client-rendered sites — `assignedJson` lifts the array; enumerate it with `asList`:
+
+```fsharp
+let quotes =
+    doc
+    |> Extract.assignedJson "data"            // var data = [ … ]
+    |> Option.map Extract.asList
+    |> Option.defaultValue []
+    |> List.choose (Extract.prop "text" >> Option.bind Extract.asString)
+```
+
+The runnable [`samples/QuotesJs`](../../../samples/QuotesJs) recipe does exactly this against
+`quotes.toscrape.com/js`, whose static HTML ships no `.quote` markup at all.
 
 ## Replay the JSON API
 
