@@ -10,6 +10,7 @@
     <Compile Include="UrlTests.fs" />
     <Compile Include="ResilienceTests.fs" />
     <Compile Include="RotationTests.fs" />
+    <Compile Include="SessionTests.fs" />
     <Compile Include="HtmlTests.fs" />
     <Compile Include="ExtractTests.fs" />
     <Compile Include="RobotsTests.fs" />

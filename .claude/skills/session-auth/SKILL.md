@@ -1,57 +1,27 @@
 ---
 name: session-auth
-description: Handle login, cookies and sessions in CrawlSage. Use when a crawl needs authentication — form login, keeping a session across requests, persisting a cookie jar, CSRF tokens, or bearer/API tokens. Covers the CookieContainer-backed client and form-POST login flow.
+description: Handle login, cookies and sessions in CrawlSage. Use when a crawl needs authentication — form login, keeping a session across requests, persisting a cookie jar, CSRF tokens, or bearer/API tokens. Covers the Session module (CookieContainer-backed client + form-POST login).
 ---
 
 # session-auth
 
 Crawling behind a login means two things: **send credentials once**, then **carry the
-session cookie** on every following request. .NET's `HttpClientHandler` +
-`CookieContainer` does the cookie-carrying automatically.
+session cookie** on every following request. CrawlSage's `Session` does both — one
+`HttpClient` with its own `CookieContainer` that persists cookies like a browser.
 
 > Only automate logins for accounts and sites you are authorised to access. Keep
 > credentials out of the repo (use `.env` / `*.local.json`, both git-ignored).
 
-## A session-aware client
+## The Session module (shipped — `Session.fs`)
 
-A `CookieContainer` shared by the handler persists cookies across requests, just like a
-browser session.
-
-```fsharp
-namespace CrawlSage
-
-open System
-open System.Net
-open System.Net.Http
-
-/// An HTTP session that remembers cookies across requests.
-module Session =
-
-    type T = { Client: HttpClient; Cookies: CookieContainer }
-
-    /// Create a fresh session with its own cookie jar.
-    let create () : T =
-        let cookies = CookieContainer()
-        let handler = new HttpClientHandler(CookieContainer = cookies, UseCookies = true)
-        { Client = new HttpClient(handler); Cookies = cookies }
-
-    /// POST a form (login) and keep whatever cookies come back.
-    let postForm (url: string) (fields: (string * string) list) (session: T) =
-        async {
-            use content = new FormUrlEncodedContent(dict fields)
-            let! token = Async.CancellationToken
-            let! resp = session.Client.PostAsync(url, content, token) |> Async.AwaitTask
-            return resp
-        }
-
-    /// GET an authenticated page using the session's cookies.
-    let get (url: string) (session: T) =
-        async {
-            let! token = Async.CancellationToken
-            let! resp = session.Client.GetAsync(url, token) |> Async.AwaitTask
-            return! resp.Content.ReadAsStringAsync(token) |> Async.AwaitTask
-        }
-```
+| Function | Does |
+| --- | --- |
+| `Session.create ()` | a fresh session with an empty cookie jar |
+| `Session.login session url fields` | POST a login form; captures the `Set-Cookie`s |
+| `Session.fetch session` | a `Renderer` that fetches with the session's cookies |
+| `Session.cookies session url` | the cookies it would send to a URL (name → value) |
+| `Session.addCookie session url name value` | seed a cookie (e.g. a token you already hold) |
+| `Session.save` / `Session.load` | persist / restore the jar across runs |
 
 ## Login flow
 
@@ -60,28 +30,45 @@ open CrawlSage
 
 let session = Session.create ()
 
-// 1. Log in (cookies are captured automatically).
-let _ =
-    session
-    |> Session.postForm "https://example.com/login"
-        [ "username", Environment.GetEnvironmentVariable "CS_USER"
-          "password", Environment.GetEnvironmentVariable "CS_PASS" ]
-    |> Async.RunSynchronously
+// 1. Log in — cookies are captured automatically.
+Session.login session "https://example.com/login"
+    [ "username", Environment.GetEnvironmentVariable "CS_USER"
+      "password", Environment.GetEnvironmentVariable "CS_PASS" ]
+|> Async.RunSynchronously
+|> ignore
 
-// 2. Now fetch pages that require the session.
-let dashboard = session |> Session.get "https://example.com/dashboard" |> Async.RunSynchronously
+// 2. Crawl authenticated pages — Session.fetch is the Renderer.
+Spider.crawlWith (Session.fetch session) spider |> Async.RunSynchronously
 ```
+
+`Session.fetch session` is a `Renderer`, so it drops straight into `Spider.crawlWith` (or
+compose resilience around it). For a one-off page: `Session.fetch session request`.
 
 ## CSRF tokens
 
-Many login forms embed a hidden token. Fetch the login page first, extract it with the
-**`parse-html`** skill, then include it in `postForm`:
+Many login forms embed a hidden token. Fetch the login page with the session first,
+extract it (the `parse-html` skill), then include it in `login`:
 
 ```fsharp
 let token =
-    session |> Session.get loginUrl |> Async.RunSynchronously
-    |> Html.parse |> Html.select "input[name=_csrf]"
-    |> Option.bind (Html.attr "value") |> Option.defaultValue ""
+    Session.fetch session (Request.create loginUrl)
+    |> Async.RunSynchronously
+    |> fun response -> Html.parse response.Body
+    |> Html.select "input[name=_csrf]"
+    |> Option.bind (Html.attr "value")
+    |> Option.defaultValue ""
+
+Session.login session loginUrl [ "_csrf", token; "username", user; "password", pass ]
+|> Async.RunSynchronously
+|> ignore
+```
+
+## Persisting the session between runs
+
+```fsharp
+Session.save session "session.local.json"        // git-ignored
+// next run — already authenticated, no re-login:
+let session = Session.load "session.local.json"
 ```
 
 ## Bearer / API tokens
@@ -96,14 +83,13 @@ Request.create "https://api.example.com/me"
 
 ## Dynamic logins
 
-If the login page is a JavaScript SPA, drive it with Playwright (`FillAsync` /
-`ClickAsync`) from the **`dynamic-page`** skill, then export `context.cookies()` into a
-`CookieContainer` for fast `HttpClient` fetches afterward.
+If the login page is a JavaScript SPA, render it first (the `dynamic-page` skill / JS
+renderer), copy the cookies it sets into the session with `Session.addCookie`, then
+`Session.fetch` from there.
 
 ## Gotchas
 
-- Reuse **one** `Session.T` for the whole crawl — a new client means a new (empty) jar.
-- Some sites set the session cookie only after a redirect; leave `AllowAutoRedirect`
-  on (the default) so it's captured.
-- Persist cookies between runs by serialising the `CookieContainer` if you don't want to
-  log in every time.
+- Reuse **one** `Session` for the whole crawl — a new session means a new (empty) jar.
+- Some sites set the session cookie only after a redirect; the client follows redirects by
+  default, so it is captured.
+- `Session.save` / `load` persist the jar between runs — no need to log in every time.
