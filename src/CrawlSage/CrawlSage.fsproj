@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Compile Include="Types.fs" />
+    <Compile Include="Url.fs" />
     <Compile Include="Http.fs" />
     <Compile Include="Resilience.fs" />
     <Compile Include="Rotation.fs" />

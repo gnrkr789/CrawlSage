@@ -55,15 +55,9 @@ type Spider<'Item> =
 /// never touched concurrently. The crawl ends when a level produces no new requests.
 module Spider =
 
-    /// Dedup key: method + host-normalised URL (host lower-cased, fragment dropped,
-    /// path and query preserved).
+    /// Dedup key: method + canonicalised URL (see <see cref="M:CrawlSage.Url.normalize"/>).
     let private fingerprint (request: Request) : string =
-        let url =
-            match Uri.TryCreate(request.Url, UriKind.Absolute) with
-            | true, uri -> uri.GetLeftPart(UriPartial.Authority).ToLowerInvariant() + uri.PathAndQuery
-            | _ -> request.Url
-
-        $"{request.Method}|{url}"
+        $"{request.Method}|{Url.normalize request.Url}"
 
     /// Build a spider from seeds, a parser and a pipeline, with default options.
     let create
