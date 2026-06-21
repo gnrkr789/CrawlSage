@@ -6,11 +6,12 @@
     <Authors>gnrkr789</Authors>
     <Company>CrawlSage</Company>
     <Copyright>Copyright (c) 2026 gnrkr789</Copyright>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
 
     <!-- An F#-first web crawling and scraping framework for .NET. -->
     <Description>An F#-first web crawling and scraping framework for .NET.</Description>
-    <PackageProjectUrl>https://github.com/gnrkr789/CrawlSage</PackageProjectUrl>
+    <!-- Project website = the docs site (Pages); source repository = GitHub. -->
+    <PackageProjectUrl>https://gnrkr789.github.io/CrawlSage/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/gnrkr789/CrawlSage</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
