@@ -6,8 +6,8 @@
 [![Docs](https://github.com/gnrkr789/CrawlSage/actions/workflows/docs.yml/badge.svg)](https://gnrkr789.github.io/CrawlSage/)
 [![NuGet](https://img.shields.io/nuget/v/CrawlSage.svg)](https://www.nuget.org/packages/CrawlSage/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Status](https://img.shields.io/badge/status-early%20development-orange)
-![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
+![Status](https://img.shields.io/badge/status-beta-blue)
+![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%2010.0-512BD4)
 
 ![CrawlSage — scrape a list and write a CSV in one command](docs/assets/demo.gif)
 
@@ -49,10 +49,9 @@ Two principles shape it:
 
 ## Status
 
-🚧 **Early development.** The framework (phases 0–8) is in place — resilient downloader,
-parsing DSL, spider engine, extraction, export, crawl ops, a sample cookbook and a tag-driven
-NuGet release — plus a hardening pass: link extraction, binary downloads, resumable/bounded
-frontiers, crawl stats, sessions, sitemaps and an opt-in browser renderer.
+**v0.1.2 — beta.** Feature-complete for everyday crawling: resilient downloader, parsing DSL,
+spider engine, embedded-JSON extraction, export sinks, politeness, sessions, sitemaps, and an
+opt-in browser renderer. Targets **.NET 8** and **.NET 10**.
 
 ---
 
@@ -62,12 +61,15 @@ frontiers, crawl stats, sessions, sitemaps and an opt-in browser renderer.
 dotnet add package CrawlSage
 ```
 
+Targets **.NET 8** and **.NET 10**. For pages that truly render client-side, add the opt-in
+[`CrawlSage.Browser`](https://www.nuget.org/packages/CrawlSage.Browser/) (Playwright) package.
+
 ---
 
 ## Quick start
 
 ```bash
-# Requires the .NET 10 SDK
+# Build from source with the .NET 10 SDK (the package itself targets net8.0 and net10.0)
 dotnet build CrawlSage.slnx
 dotnet test  CrawlSage.slnx
 ```

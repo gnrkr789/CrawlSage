@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- NuGet packaging. Shared metadata (Description, Authors, License, RepositoryUrl,
@@ -9,7 +9,7 @@
          version from the git tag. -->
     <PackageId>CrawlSage</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Framework core through Phase 7: resilient downloader, HTML parsing DSL, spider engine, embedded-JSON extraction, export sinks, robots.txt + per-host pacing, UA/proxy rotation, and a runnable sample cookbook.</PackageReleaseNotes>
+    <PackageReleaseNotes>Multi-targets .NET 8 and .NET 10. Resilient downloader (retry/back-off/timeout/throttle, gzip/brotli, binary downloads), HTML selector DSL + link extraction, URL canonicalisation, embedded-JSON extraction, frontier-driven spider engine (dedup, depth, resumable/bounded frontiers, crawl stats, per-page fault tolerance), robots.txt + per-host pacing, UA/proxy rotation, sitemap discovery, cookie-jar sessions, and JSON/JSONL/CSV/data-frame export. Opt-in Playwright rendering via the separate CrawlSage.Browser package.</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
@@ -38,8 +38,9 @@
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.5.1" />
     <PackageReference Include="CsvHelper" Version="33.1.0" />
-    <PackageReference Include="Deedle" Version="8.0.0" />
+    <PackageReference Include="Deedle" Version="3.0.0" />
     <PackageReference Include="Polly" Version="8.7.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Published as a separate, opt-in package so the core stays browser-free. -->
+    <PackageId>CrawlSage.Browser</PackageId>
+    <Description>Opt-in Playwright-backed browser renderer for CrawlSage — renders client-side pages the browser-free core can't, behind the same Renderer seam.</Description>
+    <PackageReleaseNotes>Opt-in headless-Chromium (Playwright) renderer exposing Browser.render as a CrawlSage Renderer. Multi-targets .NET 8 and .NET 10.</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="1.60.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

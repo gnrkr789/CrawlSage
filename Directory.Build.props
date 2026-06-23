@@ -6,7 +6,7 @@
     <Authors>gnrkr789</Authors>
     <Company>CrawlSage</Company>
     <Copyright>Copyright (c) 2026 gnrkr789</Copyright>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
 
     <!-- An F#-first web crawling and scraping framework for .NET. -->
     <Description>An F#-first web crawling and scraping framework for .NET.</Description>
@@ -25,6 +25,14 @@
     <WarningLevel>5</WarningLevel>
     <!-- Keep CI green on warnings for now; tighten once the API stabilises. -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Reproducible builds + SourceLink so package consumers can step into the source. -->
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
 </Project>
