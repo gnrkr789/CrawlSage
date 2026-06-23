@@ -19,22 +19,22 @@ core never takes a browser dependency.
 
 ## Layers
 
-| Layer | File | Responsibility | Phase |
-| --- | --- | --- | --- |
-| **Domain** | `Types.fs` | `Request`, `Response`, `Renderer`, `Sink` — pure data, no I/O | 0 ✅ |
-| **URLs** | `Url.fs` | resolve · canonicalise (dedup) · same-host | 9 ✅ |
-| **Downloader** | `Http.fs` | `fetch` / `fetchBytes` / `download` over `HttpClient` (gzip) | 0 ✅ |
-| **Resilience** | `Resilience.fs` | retry · back-off · timeout · throttle (Polly) | 1 ✅ |
-| **Rotation** | `Rotation.fs` | honest User-Agent & proxy rotation (round-robin) | 6 ✅ |
-| **Session** | `Session.fs` | cookie-jar session — login, save/load | 9 ✅ |
-| **Parsing** | `Html.fs` | AngleSharp selector DSL + link extraction | 2 ✅ |
-| **Extraction** | `Extract.fs` | embedded-state / JSON, no browser: `__NEXT_DATA__`, JSON-LD | 4a ✅ |
-| **Politeness** | `Robots.fs` | robots.txt parse · per-host cache · per-host pacing | 6 ✅ |
-| **Discovery** | `Sitemap.fs` | `sitemap.xml` / `sitemapindex` URLs | 9 ✅ |
-| **Frontier** | `Frontier.fs` | in-memory · bounded · persistent (resumable) | 9 ✅ |
-| **Engine** | `Spider.fs` | frontier scheduler, dedup, depth, pipeline, robots gate, stats | 3 ✅ |
-| **Export** | `Export.fs` | JSON / JSONL / CSV sinks + Deedle frames + `saveBytes` | 5 ✅ |
-| **Browser** *(opt-in)* | `CrawlSage.Browser` | headless Chromium renderer (Playwright) | 9 ✅ |
+| Layer | File | Responsibility |
+| --- | --- | --- |
+| **Domain** | `Types.fs` | `Request`, `Response`, `Renderer`, `Sink` — pure data, no I/O |
+| **URLs** | `Url.fs` | resolve · canonicalise (dedup) · same-host |
+| **Downloader** | `Http.fs` | `fetch` / `fetchBytes` / `download` over `HttpClient` (gzip) |
+| **Resilience** | `Resilience.fs` | retry · back-off · timeout · throttle (Polly) |
+| **Rotation** | `Rotation.fs` | honest User-Agent & proxy rotation (round-robin) |
+| **Session** | `Session.fs` | cookie-jar session — login, save/load |
+| **Parsing** | `Html.fs` | AngleSharp selector DSL + link extraction |
+| **Extraction** | `Extract.fs` | embedded-state / JSON, no browser: `__NEXT_DATA__`, JSON-LD |
+| **Politeness** | `Robots.fs` | robots.txt parse · per-host cache · per-host pacing |
+| **Discovery** | `Sitemap.fs` | `sitemap.xml` / `sitemapindex` URLs |
+| **Frontier** | `Frontier.fs` | in-memory · bounded · persistent (resumable) |
+| **Engine** | `Spider.fs` | frontier scheduler, dedup, depth, pipeline, robots gate, stats |
+| **Export** | `Export.fs` | JSON / JSONL / CSV sinks + Deedle frames + `saveBytes` |
+| **Browser** *(opt-in)* | `CrawlSage.Browser` | headless Chromium renderer (Playwright) |
 
 ## Design principles
 
@@ -54,7 +54,7 @@ core never takes a browser dependency.
 6. **Ethical by default.** `robots.txt`, rate limits and back-off are first-class
    middleware, not afterthoughts.
 
-## The request lifecycle (target design, Phase 3)
+## The request lifecycle
 
 ```
 seed Requests

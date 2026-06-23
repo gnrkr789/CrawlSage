@@ -5,11 +5,21 @@ title: Guide
 
 # Guide
 
-[← Home](index.html) &nbsp;·&nbsp; [Getting started](getting-started.html) &nbsp;·&nbsp; [Architecture](architecture.html) &nbsp;·&nbsp; [Cookbook](cookbook.html)
+[← Home](index.html) &nbsp;·&nbsp; [Architecture](architecture.html)
 
 The full API, module by module, with runnable snippets. Every example assumes `open CrawlSage`.
 Functions are curried with the thing being transformed **last**, so they pipe with `|>`, and
 lookups return `option` instead of null.
+
+## Install
+
+CrawlSage targets .NET 10. Add the package:
+
+```bash
+dotnet add package CrawlSage
+```
+
+The opt-in browser renderer ships separately as `CrawlSage.Browser`.
 
 ## Contents
 

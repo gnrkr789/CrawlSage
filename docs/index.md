@@ -7,45 +7,39 @@ title: CrawlSage
 
 **An F#-first web crawling & scraping framework for .NET.**
 
-[Getting started](getting-started.html){: .btn } &nbsp;
 [Guide](guide.html){: .btn } &nbsp;
 [Architecture](architecture.html){: .btn } &nbsp;
-[Cookbook](cookbook.html){: .btn } &nbsp;
 [GitHub](https://github.com/gnrkr789/CrawlSage){: .btn }
 
 ![CrawlSage — scrape a list and write a CSV in one command](assets/demo.svg)
 
 ---
 
-## Why CrawlSage?
+## A complete crawling stack for F#
 
-CrawlSage gives F# a complete crawling stack: a crawl engine (request queue, dedup,
-scheduler, item pipelines) over a resilient downloader, a concise HTML selector DSL,
-browser-free extraction of embedded data, and polite-by-default crawl ops.
-
-The API is F#-idiomatic — records, discriminated unions, pipelines and computation
-expressions instead of attributes and inheritance.
+CrawlSage gives F# a full crawling stack: a crawl engine — request queue, dedup,
+scheduler, item pipelines — over a resilient downloader, a concise HTML selector DSL,
+browser-free extraction of embedded data, and polite-by-default crawl ops. The API is
+F#-idiomatic: records, discriminated unions and pipelines instead of attributes and
+inheritance.
 
 ## What you get
 
-- **Resilient downloader** — retry/back-off, timeouts, throttling, gzip; plus binary file downloads.
-- **Spider engine** — a frontier scheduler with dedup, depth bounds, per-page fault tolerance and
-  a stats/logging hook. Swap in a **resumable** (disk-backed) or **bounded** frontier.
-- **Parse & extract** — forgiving CSS selectors, link extraction, and embedded-JSON extraction
-  (`__NEXT_DATA__`, JSON-LD, assigned globals) — no browser.
-- **Polite by default** — `robots.txt`, per-host pacing, honest UA / proxy rotation, sitemap discovery.
+- **Resilient downloader** — retry/back-off, timeouts, throttling, transparent gzip/brotli, and binary file downloads.
+- **Spider engine** — a frontier scheduler with dedup, depth bounds, per-page fault tolerance and a stats/logging hook. Swap in a resumable (disk-backed) or bounded frontier.
+- **Parse & extract** — forgiving CSS selectors, link extraction, and embedded-JSON extraction (`__NEXT_DATA__`, JSON-LD, assigned globals) — no browser.
+- **Polite by default** — `robots.txt`, per-host pacing, honest User-Agent / proxy rotation, sitemap discovery.
 - **Sessions** — cookie-jar login, saved and restored across runs.
-- **Output** — JSON / JSON Lines / CSV / Deedle data frames.
-- **JS when you must** — an opt-in headless-Chromium renderer, kept out of the core.
+- **Output** — JSON, JSON Lines, CSV, and Deedle data frames.
+- **JavaScript when you must** — an opt-in headless-Chromium renderer, kept out of the core.
 
-Full API in the **[Guide](guide.html)**; runnable crawlers in the **[Cookbook](cookbook.html)**.
+## Install
 
-## Status
+CrawlSage targets **.NET 10**.
 
-🚧 **Early (v0), but capable.** The framework is implemented end to end — resilient downloader,
-parsing DSL, spider engine, extraction, export, crawl ops, sessions, sitemaps, resumable
-frontiers, an opt-in browser renderer, and a tag-driven NuGet release. 74 tests on net10.0;
-APIs may still shift before 1.0.
+```bash
+dotnet add package CrawlSage
+```
 
 ## A taste
 
@@ -88,4 +82,8 @@ let parse (response: Response) : ParseResult<Quote> list =
 |> Async.RunSynchronously
 ```
 
-→ everything, module by module, is in the **[Guide](guide.html)**.
+Every module, with runnable snippets, is **[documented in full →](guide.html)**.
+
+---
+
+<sub>Built for .NET 10 · MIT licensed · [github.com/gnrkr789/CrawlSage](https://github.com/gnrkr789/CrawlSage)</sub>
