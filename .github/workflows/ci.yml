@@ -9,8 +9,12 @@ on:
 
 jobs:
   build-test:
-    name: Build & test
-    runs-on: ubuntu-latest
+    name: Build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,4 +35,4 @@ jobs:
       - name: Test
         # Exclude browser tests (Category=Browser) — they need the Playwright Chromium
         # binary, which isn't installed on CI. Run them locally with --filter "Category=Browser".
-        run: dotnet test CrawlSage.slnx --configuration Release --no-build --verbosity normal --filter "Category!=Browser"
+        run: dotnet test CrawlSage.slnx --configuration Release --no-build --verbosity normal --filter "Category!=Browser" --collect:"XPlat Code Coverage"

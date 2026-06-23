@@ -19,6 +19,10 @@
     <Compile Include="FrontierTests.fs" />
     <Compile Include="SpiderTests.fs" />
     <Compile Include="ExportTests.fs" />
+    <Compile Include="UrlProperties.fs" />
+    <Compile Include="RobotsProperties.fs" />
+    <Compile Include="ExtractProperties.fs" />
+    <Compile Include="IntegrationTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +30,12 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="FsCheck.Xunit" Version="2.16.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- In-process Kestrel server for end-to-end integration tests. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
