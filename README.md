@@ -44,6 +44,9 @@ Two principles shape it:
   honest User-Agent / proxy rotation, and `sitemap.xml` discovery.
 - **Sessions** — a cookie-jar session for form login, saved and restored across runs.
 - **Output** — JSON / JSON Lines / CSV / data-frame sinks for items, plus binary file downloads.
+- **Declarative & host-ready** — describe a crawl with the `spider { }` computation expression,
+  and embed CrawlSage in a .NET host via the opt-in `CrawlSage.Extensions` package
+  (`Microsoft.Extensions.Logging` + dependency injection, `IHttpClientFactory`-backed).
 
 ---
 
@@ -62,7 +65,9 @@ dotnet add package CrawlSage
 ```
 
 Targets **.NET 8** and **.NET 10**. For pages that truly render client-side, add the opt-in
-[`CrawlSage.Browser`](https://www.nuget.org/packages/CrawlSage.Browser/) (Playwright) package.
+[`CrawlSage.Browser`](https://www.nuget.org/packages/CrawlSage.Browser/) (Playwright) package; to
+host CrawlSage in a .NET app (logging + DI), add
+[`CrawlSage.Extensions`](https://www.nuget.org/packages/CrawlSage.Extensions/).
 
 ---
 
@@ -101,6 +106,22 @@ let authors =
     |> List.map Html.text
 ```
 
+Or describe a whole crawl declaratively with the `spider { }` builder:
+
+```fsharp
+open CrawlSage
+
+let crawler =
+    spider {
+        seed "https://quotes.toscrape.com/"
+        parse parseQuotes
+        pipeline (Export.appendJsonLine "data/quotes.jsonl")
+        maxDepth 3
+    }
+
+Spider.crawl crawler |> Async.RunSynchronously
+```
+
 Full crawlers — extract a list, follow pagination, lift embedded JSON, rotate User-Agents —
 are runnable under [`samples/`](samples), each polite by default.
 
@@ -127,9 +148,11 @@ CrawlSage/
 │   ├── Sitemap.fs            #   sitemap.xml / sitemapindex discovery
 │   ├── Frontier.fs           #   in-memory · bounded · persistent (resumable) frontier
 │   ├── Spider.fs             #   crawl engine (frontier · dedup · depth · pipeline · stats)
+│   ├── SpiderBuilder.fs      #   the spider { } computation expression
 │   └── Export.fs             #   sinks: JSON / JSONL / CSV / data frames + saveBytes
 ├── src/CrawlSage.Browser/    # opt-in JS renderer (Playwright) — not a core dependency
-├── tests/                    # xUnit test projects (core + browser)
+├── src/CrawlSage.Extensions/ # opt-in Microsoft.Extensions logging + DI integration
+├── tests/                    # xUnit test projects (core · browser · extensions)
 ├── samples/                  # runnable, self-contained crawlers
 └── docs/                     # documentation site
 ```

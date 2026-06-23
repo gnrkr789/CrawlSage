@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Published as a separate, opt-in package so the core stays dependency-light. -->
+    <PackageId>CrawlSage.Extensions</PackageId>
+    <Description>Opt-in Microsoft.Extensions integration for CrawlSage — bridge crawl events to ILogger and resolve an IHttpClientFactory-backed renderer via dependency injection (services.AddCrawlSage()).</Description>
+    <PackageReleaseNotes>Logging.toLogger bridges CrawlEvents into Microsoft.Extensions.Logging; AddCrawlSage registers a pooled HttpClient (IHttpClientFactory) and a CrawlSageClient exposing a renderer + an ILogger-bridged event handler. Multi-targets .NET 8 and .NET 10.</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Logging.fs" />
+    <Compile Include="DependencyInjection.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CrawlSage\CrawlSage.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

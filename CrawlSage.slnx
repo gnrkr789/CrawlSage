@@ -7,10 +7,12 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/CrawlSage.Browser/CrawlSage.Browser.fsproj" />
+    <Project Path="src/CrawlSage.Extensions/CrawlSage.Extensions.fsproj" />
     <Project Path="src/CrawlSage/CrawlSage.fsproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/CrawlSage.Browser.Tests/CrawlSage.Browser.Tests.fsproj" />
+    <Project Path="tests/CrawlSage.Extensions.Tests/CrawlSage.Extensions.Tests.fsproj" />
     <Project Path="tests/CrawlSage.Tests/CrawlSage.Tests.fsproj" />
   </Folder>
 </Solution>

@@ -57,6 +57,7 @@ jobs:
         run: |
           dotnet pack src/CrawlSage/CrawlSage.fsproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.version }} --output ./artifacts
           dotnet pack src/CrawlSage.Browser/CrawlSage.Browser.fsproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.version }} --output ./artifacts
+          dotnet pack src/CrawlSage.Extensions/CrawlSage.Extensions.fsproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.version }} --output ./artifacts
 
       - name: Publish to NuGet
         if: startsWith(github.ref, 'refs/tags/v')

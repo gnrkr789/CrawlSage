@@ -32,6 +32,7 @@
     <Compile Include="Sitemap.fs" />
     <Compile Include="Frontier.fs" />
     <Compile Include="Spider.fs" />
+    <Compile Include="SpiderBuilder.fs" />
     <Compile Include="Export.fs" />
   </ItemGroup>
 

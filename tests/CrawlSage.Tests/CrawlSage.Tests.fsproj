@@ -23,6 +23,7 @@
     <Compile Include="RobotsProperties.fs" />
     <Compile Include="ExtractProperties.fs" />
     <Compile Include="IntegrationTests.fs" />
+    <Compile Include="SpiderBuilderTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
