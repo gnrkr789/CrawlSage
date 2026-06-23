@@ -1,7 +1,7 @@
 name: Release
 
-# Tag-driven NuGet release. Push a `vX.Y.Z` tag to build, test, pack, and publish CrawlSage
-# to nuget.org. The version is taken from the tag.
+# Tag-driven release. Push a `vX.Y.Z` tag to build, test, pack, and publish CrawlSage to
+# nuget.org AND GitHub Packages (so it appears on the repo's Packages tab). Version from tag.
 #
 # One-time setup: add a repository secret NUGET_API_KEY
 #   (Settings → Secrets and variables → Actions → New repository secret),
@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  packages: write # also publish to GitHub Packages (nuget.pkg.github.com)
 
 jobs:
   release:
@@ -62,3 +63,12 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: dotnet nuget push "artifacts/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      # Also publish to GitHub Packages so the package appears on the repo's "Packages" tab.
+      # Uses the auto-provided GITHUB_TOKEN (needs packages: write above); --no-symbols because
+      # GitHub Packages rejects the .snupkg symbol package.
+      - name: Publish to GitHub Packages
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "$GH_TOKEN" --source "https://nuget.pkg.github.com/gnrkr789/index.json" --skip-duplicate --no-symbols
