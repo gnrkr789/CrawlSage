@@ -11,24 +11,32 @@ module Url =
     /// <c>"../x"</c>) against the page's <paramref name="baseUrl"/>. Absolute hrefs pass
     /// through; anything unparseable is returned unchanged.
     let resolve (baseUrl: string) (href: string) : string =
-        match Uri.TryCreate(baseUrl, UriKind.Absolute) with
-        | true, b ->
-            // Resolve against the base: this handles an absolute href (which replaces the
-            // base) and a relative one alike — and, crucially, avoids the cross-platform trap
-            // where Uri.TryCreate("/path", Absolute) is parsed as a file:// URI on Unix.
-            match Uri.TryCreate(b, href) with
-            | true, resolved -> resolved.AbsoluteUri
-            | _ -> href
-        | _ ->
-            match Uri.TryCreate(href, UriKind.Absolute) with
-            | true, abs -> abs.AbsoluteUri
-            | _ -> href
+        // Uri can *throw* on pathological input despite TryCreate's contract (an internal
+        // ArgumentOutOfRangeException on some strings), so guard it all and fall back to the input.
+        try
+            match Uri.TryCreate(baseUrl, UriKind.Absolute) with
+            | true, b ->
+                // Resolve against the base: this handles an absolute href (which replaces the
+                // base) and a relative one alike — and, crucially, avoids the cross-platform trap
+                // where Uri.TryCreate("/path", Absolute) is parsed as a file:// URI on Unix.
+                match Uri.TryCreate(b, href) with
+                | true, resolved -> resolved.AbsoluteUri
+                | _ -> href
+            | _ ->
+                match Uri.TryCreate(href, UriKind.Absolute) with
+                | true, abs -> abs.AbsoluteUri
+                | _ -> href
+        with _ ->
+            href
 
     /// The lower-cased host of <paramref name="url"/>, or <c>""</c> if it is not absolute.
     let host (url: string) : string =
-        match Uri.TryCreate(url, UriKind.Absolute) with
-        | true, uri -> uri.Host.ToLowerInvariant()
-        | _ -> ""
+        try
+            match Uri.TryCreate(url, UriKind.Absolute) with
+            | true, uri -> uri.Host.ToLowerInvariant()
+            | _ -> ""
+        with _ ->
+            ""
 
     /// Whether <paramref name="a"/> and <paramref name="b"/> share a (non-empty) host.
     let isSameHost (a: string) (b: string) : bool =
@@ -39,11 +47,14 @@ module Url =
     /// empty path normalised to <c>"/"</c>, the fragment removed and the query preserved.
     /// Two URLs that differ only by fragment, default port or host casing collapse to one.
     let normalize (url: string) : string =
-        match Uri.TryCreate(url, UriKind.Absolute) with
-        | true, uri ->
-            let scheme = uri.Scheme.ToLowerInvariant()
-            let host = uri.Host.ToLowerInvariant()
-            let port = if uri.IsDefaultPort then "" else $":{uri.Port}"
-            let path = if String.IsNullOrEmpty uri.AbsolutePath then "/" else uri.AbsolutePath
-            $"{scheme}://{host}{port}{path}{uri.Query}"
-        | _ -> url
+        try
+            match Uri.TryCreate(url, UriKind.Absolute) with
+            | true, uri ->
+                let scheme = uri.Scheme.ToLowerInvariant()
+                let host = uri.Host.ToLowerInvariant()
+                let port = if uri.IsDefaultPort then "" else $":{uri.Port}"
+                let path = if String.IsNullOrEmpty uri.AbsolutePath then "/" else uri.AbsolutePath
+                $"{scheme}://{host}{port}{path}{uri.Query}"
+            | _ -> url
+        with _ ->
+            url
