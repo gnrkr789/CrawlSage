@@ -1,14 +1,21 @@
 namespace CrawlSage
 
+open System
 open System.IO
 open System.Net
 open System.Net.Http
+open System.Text
+open System.Text.RegularExpressions
 
 /// Minimal, F#-idiomatic HTTP fetching built on <see cref="T:System.Net.Http.HttpClient"/>.
 ///
 /// This is the seed of CrawlSage's downloader layer; retry/back-off, throttling and
 /// rotation are composed around it (see <c>Resilience</c> and <c>Rotation</c>).
 module Http =
+
+    // Make legacy code pages (EUC-KR, Shift_JIS, GBK, …) available to Encoding.GetEncoding,
+    // which on .NET otherwise only knows UTF-8/UTF-16/ASCII.
+    do Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
 
     /// A single shared client. <c>HttpClient</c> is thread-safe and meant to be reused;
     /// creating one per request exhausts sockets under load.
@@ -38,6 +45,45 @@ module Http =
 
         message
 
+    /// Look up an encoding by charset label, returning None for a blank or unknown one.
+    let private encodingOrNone (name: string) : Encoding option =
+        if String.IsNullOrWhiteSpace name then
+            None
+        else
+            try
+                Some(Encoding.GetEncoding(name.Trim().Trim('"', '\'')))
+            with _ ->
+                None
+
+    /// Matches <c>&lt;meta charset="x"&gt;</c> and <c>&lt;meta http-equiv content="…; charset=x"&gt;</c>.
+    let private metaCharsetRegex =
+        Regex(
+            "<meta[^>]+?charset\\s*=\\s*[\"']?\\s*([a-zA-Z0-9_\\-:.]+)",
+            RegexOptions.IgnoreCase ||| RegexOptions.Compiled
+        )
+
+    /// Sniff a charset declared in an HTML <c>&lt;meta&gt;</c> within the first 2 KB of bytes,
+    /// read as Latin-1 so every byte maps to a char without throwing.
+    let private metaCharset (bytes: byte[]) : string option =
+        let head = Encoding.Latin1.GetString(bytes, 0, min bytes.Length 2048)
+        let m = metaCharsetRegex.Match head
+        if m.Success then Some m.Groups.[1].Value else None
+
+    /// Decode response bytes to text the way a browser does: a byte-order mark wins; else the
+    /// HTTP <c>Content-Type; charset</c> (<paramref name="httpCharset"/>); else a charset declared
+    /// in an HTML <c>&lt;meta&gt;</c>; else UTF-8. This keeps non-UTF-8 pages (EUC-KR, Shift_JIS,
+    /// GBK, …) from turning into mojibake.
+    let decode (httpCharset: string option) (bytes: byte[]) : string =
+        let fallback =
+            httpCharset
+            |> Option.bind encodingOrNone
+            |> Option.orElseWith (fun () -> metaCharset bytes |> Option.bind encodingOrNone)
+            |> Option.defaultValue Encoding.UTF8
+
+        use stream = new MemoryStream(bytes)
+        use reader = new StreamReader(stream, fallback, detectEncodingFromByteOrderMarks = true)
+        reader.ReadToEnd()
+
     /// Fetches <paramref name="request"/> over a specific <see cref="T:System.Net.Http.HttpClient"/>
     /// and decodes it into a <see cref="T:CrawlSage.Response"/>. Use this to fetch over a
     /// chosen egress — e.g. a proxied client from <c>Rotation</c> — without duplicating the
@@ -47,7 +93,13 @@ module Http =
             use message = buildMessage request
             let! token = Async.CancellationToken
             use! response = client.SendAsync(message, token) |> Async.AwaitTask
-            let! body = response.Content.ReadAsStringAsync(token) |> Async.AwaitTask
+            let! bytes = response.Content.ReadAsByteArrayAsync(token) |> Async.AwaitTask
+
+            // The page's declared charset (HTTP header) — passed to decode as the primary hint.
+            let httpCharset =
+                response.Content.Headers.ContentType
+                |> Option.ofObj
+                |> Option.bind (fun ct -> Option.ofObj ct.CharSet)
 
             let headers =
                 response.Headers
@@ -57,7 +109,7 @@ module Http =
             return
                 { Request = request
                   StatusCode = int response.StatusCode
-                  Body = body
+                  Body = decode httpCharset bytes
                   Headers = headers }
         }
 

@@ -30,7 +30,9 @@ Two principles shape it:
 ## Features
 
 - **Resilient downloader** — retry with back-off + jitter, per-request timeout, concurrency
-  throttling, and gzip/brotli decompression, composed as wrappers around one `HttpClient`.
+  throttling, gzip/brotli decompression, and correct text encoding (honours a page's `<meta>`
+  charset, so EUC-KR / Shift_JIS / GBK pages don't turn into mojibake) — composed as wrappers
+  around one `HttpClient`.
 - **Parsing & links** — forgiving, `option`-returning CSS selectors, plus a link extractor and
   URL canonicalisation for dedup and same-host filtering.
 - **Spider engine** — a frontier-driven scheduler with dedup, depth bounding, an item pipeline,

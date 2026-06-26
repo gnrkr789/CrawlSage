@@ -13,6 +13,7 @@
     <Compile Include="RotationTests.fs" />
     <Compile Include="SessionTests.fs" />
     <Compile Include="HtmlTests.fs" />
+    <Compile Include="CharsetTests.fs" />
     <Compile Include="ExtractTests.fs" />
     <Compile Include="RobotsTests.fs" />
     <Compile Include="SitemapTests.fs" />
