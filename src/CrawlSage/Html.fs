@@ -26,6 +26,28 @@ module Html =
     let selectAll (selector: string) (node: IParentNode) : IElement list =
         node.QuerySelectorAll(selector) |> List.ofSeq
 
+    /// Every **element** matching an XPath expression, in document order — for queries CSS can't
+    /// express (axes, text/attribute predicates, ancestor selection). Non-element results (e.g.
+    /// attribute nodes) are dropped; to read an attribute, select its element and use <c>attr</c>.
+    let selectAllXPath (xpath: string) (node: INode) : IElement list =
+        // AngleSharp.XPath queries from an element; for a document, use its root element. A `//`
+        // expression is absolute (from the document root) regardless of the context element.
+        let root: IElement =
+            match node with
+            | :? IElement as element -> element
+            | :? IDocument as document -> document.DocumentElement
+            | _ -> node.Owner.DocumentElement
+
+        AngleSharp.XPath.Extensions.SelectNodes(root, xpath)
+        |> Seq.choose (function
+            | :? IElement as element -> Some element
+            | _ -> None)
+        |> List.ofSeq
+
+    /// First **element** matching an XPath expression, if any (see <c>selectAllXPath</c>).
+    let selectXPath (xpath: string) (node: INode) : IElement option =
+        selectAllXPath xpath node |> List.tryHead
+
     /// Trimmed text content of an element (including its descendants).
     let text (element: IElement) : string =
         element.TextContent.Trim()
