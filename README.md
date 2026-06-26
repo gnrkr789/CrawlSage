@@ -44,6 +44,9 @@ Two principles shape it:
   the rest.
 - **Politeness & rotation** — `robots.txt` (per-host cache + `Crawl-delay`), per-host pacing,
   honest User-Agent / proxy rotation, and `sitemap.xml` discovery.
+- **SSRF guard (opt-in)** — `Safety.publicOnly` refuses links that resolve to loopback, private
+  or link-local addresses (incl. cloud-metadata `169.254.169.254`), so crawling an untrusted link
+  graph can't be steered into your internal network.
 - **Sessions** — a cookie-jar session for form login, saved and restored across runs.
 - **Output** — JSON / JSON Lines / CSV / data-frame sinks for items, plus binary file downloads.
 - **Declarative & host-ready** — describe a crawl with the `spider { }` computation expression,

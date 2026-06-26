@@ -9,6 +9,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Tests.fs" />
     <Compile Include="UrlTests.fs" />
+    <Compile Include="SafetyTests.fs" />
     <Compile Include="ResilienceTests.fs" />
     <Compile Include="RotationTests.fs" />
     <Compile Include="SessionTests.fs" />
