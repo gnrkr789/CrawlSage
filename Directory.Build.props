@@ -6,7 +6,7 @@
     <Authors>gnrkr789</Authors>
     <Company>CrawlSage</Company>
     <Copyright>Copyright (c) 2026 gnrkr789</Copyright>
-    <Version>0.1.2</Version>
+    <Version>0.2.0</Version>
 
     <!-- An F#-first web crawling and scraping framework for .NET. -->
     <Description>An F#-first web crawling and scraping framework for .NET.</Description>

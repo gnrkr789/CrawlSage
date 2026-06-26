@@ -9,7 +9,7 @@
          version from the git tag. -->
     <PackageId>CrawlSage</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Multi-targets .NET 8 and .NET 10. Resilient downloader (retry/back-off/timeout/throttle, gzip/brotli, binary downloads), HTML selector DSL + link extraction, URL canonicalisation, embedded-JSON extraction, frontier-driven spider engine (dedup, depth, resumable/bounded frontiers, crawl stats, per-page fault tolerance), robots.txt + per-host pacing, UA/proxy rotation, sitemap discovery, cookie-jar sessions, and JSON/JSONL/CSV/data-frame export. Opt-in Playwright rendering via the separate CrawlSage.Browser package.</PackageReleaseNotes>
+    <PackageReleaseNotes>0.2.0 adds the spider { } computation expression, the opt-in CrawlSage.Extensions package (Microsoft.Extensions.Logging + dependency injection, IHttpClientFactory), correct text encoding (honours a page's &lt;meta&gt; charset for EUC-KR/Shift_JIS/GBK), an opt-in SSRF guard (Safety.publicOnly), and XPath selectors. Multi-targets .NET 8 and .NET 10. Core: resilient downloader (retry/back-off/timeout/throttle, gzip/brotli, binary downloads), HTML CSS + XPath selectors + link extraction, URL canonicalisation, embedded-JSON extraction, frontier-driven spider engine (dedup, depth, resumable/bounded frontiers, crawl stats, per-page fault tolerance), robots.txt + per-host pacing, UA/proxy rotation, sitemap discovery, cookie-jar sessions, and JSON/JSONL/CSV/data-frame export. Opt-in Playwright rendering via the separate CrawlSage.Browser package.</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
